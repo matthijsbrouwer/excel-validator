@@ -1,0 +1,39 @@
+{
+  "fields": [
+    {
+      "name": "Trait ID",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "Rating value",
+      "type": "integer",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "Description",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "Remarks",
+      "type": "string"
+    }
+  ],
+  "foreignKeys": [
+    {
+      "fields": ["Trait ID"],
+      "reference": {
+        "fields": ["Trait ID"],
+        "resource": "trait"
+      }
+    }
+  ],
+  "primaryKey": ["Trait ID", "Rating value"],
+  "missingValues": [""]
+}

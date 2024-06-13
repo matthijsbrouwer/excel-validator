@@ -1,0 +1,171 @@
+{
+  "fields": [
+    {
+      "name": "StudyID*",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "unique": true
+      }
+    },
+    {
+      "name": "Name",
+      "type": "string"
+    },
+    {
+      "name": "Organisation*",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "enum": ["DEU146","RUS001","POL003","BGR001","CZE047","CZE122","ISR003",
+                 "HUN020","ESP004","NLD037","ROM002","SVK001","ITA383","LBN002",
+                 "GBR088","CHE001"]
+      }
+    },
+    {
+      "name": "Country*",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "minLength": 3,
+        "maxLength": 3
+      }
+    },
+    {
+      "name": "ExperimentalSiteLocation",
+      "type": "string"
+    },
+    {
+      "name": "ExperimentalSiteName*",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "LocationType",
+      "type": "string",
+      "constraints": {
+        "enum": ["Field","Greenhouse","Other"]
+      }
+    },
+    {
+      "name": "DecimalLatitude*",
+      "type":  "number",
+      "constraints": {
+        "required": true,  
+        "minimum": -90,
+        "maximum": 90
+      }
+    },
+    {
+      "name": "DecimalLongitude*",
+      "type":  "number",
+      "constraints": {
+        "required": true,  
+        "minimum": -180,
+        "maximum": 180
+      }
+    },
+    {
+      "name": "HeightAboveSeaLevel*",
+      "type":  "number",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "SowingDate*",
+      "type": "integer",
+      "constraints": {
+        "required": true,  
+        "minimum": 18000000,
+        "maximum": 21000000
+      }
+    },
+    {
+      "name": "LongTermMeanOfPrecipitation",
+      "type": "string"
+    },
+    {
+      "name": "LongTermMeanOfTemperature",
+      "type": "string"
+    },
+    {
+      "name": "SoilTexture*",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "enum": ["clay","clay loam","loam","loamy sand","sand","sandy clay",
+                 "sandy clay loam","sandy loam","silt","silt loam",
+                 "silty clay","silty clay loam"]
+      }
+    },
+    {
+      "name": "HarvestDate",
+      "type": "integer",
+      "constraints": {
+        "minimum": 18000000,
+        "maximum": 21000000
+      }
+    },
+    {
+      "name": "ExperimentalDesign",
+      "type": "string"
+    },
+    {
+      "name": "PlotLength",
+      "type": "number"
+    },
+    {
+      "name": "PlotWidth",
+      "type": "number"
+    },
+    {
+      "name": "NumberOfPlots",
+      "type": "number"
+    },
+    {
+      "name": "NumberOfRowsPerPlot",
+      "type": "number"
+    },
+    {
+      "name": "NumberOfBlocks",
+      "type": "any"
+    },
+    {
+      "name": "NumberOfPlotsPerBlock",
+      "type": "any"
+    },
+    {
+      "name": "NumberOfReplications",
+      "type": "any"
+    },
+    {
+      "name": "DistanceBetweenRows",
+      "type": "any"
+    },
+    {
+      "name": "SowingDensityCount",
+      "type": "any"
+    },
+    {
+      "name": "Irrigation*",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "enum": ["Yes", "No"]
+      }
+    },
+    {
+      "name": "ArtificialInoculation",
+      "type": "any"
+    },
+    {
+      "name": "Remarks",
+      "type": "string"
+    }
+  ],
+  "primaryKey": ["StudyID*"],
+  "missingValues": [""]
+}

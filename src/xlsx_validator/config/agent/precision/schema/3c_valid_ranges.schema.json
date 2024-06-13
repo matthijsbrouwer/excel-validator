@@ -1,0 +1,38 @@
+{
+  "fields": [
+    {
+      "name": "VariableID*",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "VariableName",
+      "type": "string"
+    },
+    {
+      "name": "MinimumValue",
+      "type": "number"
+    },
+    {
+      "name": "MaximumValue",
+      "type": "number"
+    },
+    {
+      "name": "Remarks",
+      "type": "string"
+    }
+  ],
+  "primaryKey": ["VariableID*"],
+  "foreignKeys": [
+    {
+      "fields": ["VariableID*"],
+      "reference": {
+        "fields": ["VariableID*"],
+        "resource": "3a_observation_variables"
+      }
+    }
+  ],
+  "missingValues": [""]
+}

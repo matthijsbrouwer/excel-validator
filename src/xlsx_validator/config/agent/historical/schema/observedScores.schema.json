@@ -1,0 +1,43 @@
+{
+  "fields": [
+    {
+      "name": "Experiment ID",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "INSTCODE",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "GENUS",
+      "type": "string"
+    },
+    {
+      "name": "ACCENUMB",
+      "type": "string"
+    },
+    {
+      "name": "AGENT_ID",
+      "type": "string"
+    },
+    {
+      "name": "DOI",
+      "type": "string"
+    }
+  ],
+  "foreignKeys": [
+    {
+      "fields": ["Experiment ID"],
+      "reference": {
+        "fields": ["Experiment ID"],
+        "resource": "experiment"
+      }
+    }
+  ],
+  "missingValues": [""]
+}

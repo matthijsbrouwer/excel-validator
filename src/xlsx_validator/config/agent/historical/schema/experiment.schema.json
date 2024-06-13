@@ -1,0 +1,48 @@
+{
+  "fields": [
+    {
+      "name": "Experiment ID",
+      "constraints": {
+        "required": true,
+        "unique": true
+      }
+    },
+    {
+      "name": "Name",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "Description",
+      "type": "string"
+    },
+    {
+      "name": "Year start",
+      "type": "number"
+    },
+    {
+      "name": "Year end",
+      "type": "year"
+    },
+    {
+      "name": "Site Name",
+      "type": "string"
+    },
+    {
+      "name": "Longitude",
+      "type": "number"
+    },
+    {
+      "name": "Latitude",
+      "type": "number"
+    },
+    {
+      "name": "Remarks",
+      "type": "string"
+    }
+  ],
+  "primaryKey": ["Experiment ID"],
+  "missingValues": [""]
+}

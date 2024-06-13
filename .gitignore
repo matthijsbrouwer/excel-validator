@@ -4,6 +4,5 @@
 /test
 /modules
 /data
-agent
 __pycache__
 *.egg-info

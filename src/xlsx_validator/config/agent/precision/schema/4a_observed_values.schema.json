@@ -1,0 +1,60 @@
+{
+  "fields": [
+    {
+      "name": "StudyID*",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "AgentID*",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "Replication",
+      "type": "number"
+    },
+    {
+      "name": "Block",
+      "type": "string"
+    },
+    {
+      "name": "Microplot",
+      "type": "string"
+    },
+    {
+      "name": "Pot",
+      "type": "string"
+    },
+    {
+      "name": "EventType",
+      "type": "string"
+    },
+    {
+      "name": "EventDescription",
+      "type": "string"
+    },
+    {
+      "name": "EventDate",
+      "type": "integer",
+      "constraints": {
+        "minimum": 18000000,
+        "maximum": 21000000
+      }
+    }
+  ],
+  "foreignKeys": [
+    {
+      "fields": ["StudyID*"],
+      "reference": {
+        "fields": ["StudyID*"],
+        "resource": "2a_study"
+      }
+    }
+  ],
+  "missingValues": [""]
+}

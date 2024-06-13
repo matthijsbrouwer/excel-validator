@@ -1,0 +1,111 @@
+{
+    "settings": {
+        "allowAdditionalSheets": false,
+        "requireSheetOrder": false,
+        "adjustTypeForStringColumns": true,
+        "removeEmptyRows": true,
+        "removeEmptyColumns": true,
+        "schemaPath": "schema"
+    },
+    "sheets":[
+        {
+            "name": "README",
+            "optional": false
+        },
+        {
+            "name": "Observed scores",
+            "optional": false,
+            "dependencies": [],
+            "resource": "observedscores",
+            "modules": [
+                {
+                    "name": "AgentIdVerification",
+                    "config": {
+                    }
+                }
+            ],
+            "schema": {
+                "file": "observedScores.schema.json",
+                "dynamic": [
+                    {
+                        "position": "after",
+                        "dynamicResources": {
+                            "trait": {
+                                "resource": "trait"
+                            }
+                        },
+                        "linkedResources": {
+                            "rangeofvalues": {
+                                "resource": "rangeofvalues",
+                                "condition": [
+                                    {
+                                        "field": "Trait ID",
+                                        "value": {
+                                            "field": "Trait ID", 
+                                            "dynamicResource": "trait"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "mappings": {
+                            "type": {
+                                "default": "any",
+                                "map": {"Measurement": "number"}
+                            }
+                        },
+                        "fields": [
+                            {
+                                "name": {"field": "Name", "dynamicResource": "trait"},
+                                "type": {"field": "Type", "dynamicResource": "trait", "mapping": "type"},
+                                "constraints": {
+                                    "enum": {
+                                        "field": "Rating value", 
+                                        "linkedResource": "rangeofvalues",
+                                        "condition": [
+                                            {
+                                                "dynamicResource": "trait",
+                                                "field": "Type",
+                                                "value": "Rating score"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Experiment",
+            "optional": false,
+            "dependencies": [],
+            "resource": "experiment",
+            "schema": {
+                "file": "experiment.schema.json"
+            },
+            "checklist": {
+                "file": "experiment.checklist.json"
+            }
+        },
+        {
+            "name": "Range of values",
+            "optional": false,
+            "dependencies": [],
+            "resource": "rangeofvalues",
+            "schema": {
+                "file": "rangeOfValues.schema.json"
+            }
+        },
+        {
+            "name": "Trait",
+            "optional": false,
+            "dependencies": [],
+            "resource": "trait",
+            "schema": {
+                "file": "trait.schema.json"
+            }
+        }
+    ]
+}

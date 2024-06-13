@@ -1,0 +1,40 @@
+{
+  "fields": [
+    {
+      "name": "Trait ID",
+      "constraints": {
+        "required": true,
+        "unique": true
+      }
+    },
+    {
+      "name": "Name",
+      "type": "string",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "Description",
+      "type": "string"
+    },
+    {
+      "name": "Unit",
+      "type": "string"
+    },
+    {
+      "name": "Type",
+      "type": "string",
+      "constraints": {
+        "required": true,
+        "enum": ["Date", "Measurement", "Rating score"]
+      }
+    },
+    {
+      "name": "Remarks",
+      "type": "string"
+    }
+  ],
+  "primaryKey": ["Trait ID"],
+  "missingValues": [""]
+}

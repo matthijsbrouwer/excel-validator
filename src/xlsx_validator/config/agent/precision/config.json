@@ -1,0 +1,179 @@
+{
+    "settings": {
+        "allowAdditionalSheets": false,
+        "requireSheetOrder": false,
+        "adjustTypeForStringColumns": true,
+        "removeEmptyRows": true,
+        "removeEmptyColumns": true,
+        "schemaPath": "schema"
+    },
+    "sheets":[
+        {
+            "name": "README",
+            "optional": false
+        },
+        {
+            "name": "1_plant_material",
+            "optional": false
+        },
+        {
+            "name": "2a_study",
+            "optional": false,
+            "dependencies": [],
+            "resource": "2a_study",
+            "schema": {
+                "file": "2a_study.schema.json"
+            }
+        },
+        {
+            "name": "2b_experimental_design",
+            "optional": true
+        },
+        {
+            "name": "2c_treatments",
+            "optional": false,
+            "dependencies": [],
+            "resource": "2c_treatments",
+            "schema": {
+                "file": "2c_treatments.schema.json"
+            }
+        },
+        {
+            "name": "3a_observation_variables",
+            "optional": false,
+            "dependencies": [],
+            "resource": "3a_observation_variables",
+            "schema": {
+                "file": "3a_observation_variables.schema.json"
+            }
+        },
+        {
+            "name": "3b_rating_scores",
+            "optional": false,
+            "dependencies": [],
+            "resource": "3b_rating_scores",
+            "schema": {
+                "file": "3b_rating_scores.schema.json"
+            }
+        },
+        {
+            "name": "3c_valid_ranges",
+            "optional": false,
+            "dependencies": [],
+            "resource": "3c_valid_ranges",
+            "schema": {
+                "file": "3c_valid_ranges.schema.json"
+            }
+        },
+        {
+            "name": "4a_observed_values",
+            "optional": false,
+            "dependencies": [],
+            "resource": "4a_observed_values",
+            "schema": {
+                "file": "4a_observed_values.schema.json",
+                "dynamic": [
+                    {
+                        "position": "after",
+                        "dynamicResources": {
+                            "observation_variables": {
+                                "resource": "3a_observation_variables"
+                            }
+                        },
+                        "linkedResources": {
+                            "rating_scores": {
+                                "resource": "3b_rating_scores",
+                                "condition": [
+                                    {
+                                        "field": "VariableID*",
+                                        "value": {
+                                            "field": "VariableID*", 
+                                            "dynamicResource": "observation_variables"
+                                        }
+                                    }
+                                ]
+                            },
+                            "valid_ranges": {
+                                "resource": "3c_valid_ranges",
+                                "condition": [
+                                    {
+                                        "field": "VariableID*",
+                                        "value": {
+                                            "field": "VariableID*", 
+                                            "dynamicResource": "observation_variables"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "mappings": {
+                            "type": {
+                                "default": "any",
+                                "map": {"Rating score": "string", "Date": "integer", "Measurement": "any"}
+                            }
+                        },
+                        "fields": [
+                            {
+                                "name": {"field": "VariableID*", "dynamicResource": "observation_variables"},
+                                "type": {"field": "Type", "dynamicResource": "trait", "mapping": "type"},
+                                "constraints": {
+                                    "required": false,
+                                    "minimum": {
+                                        "field": "MinimumValue", 
+                                        "linkedResource": "valid_ranges",
+                                        "condition": [
+                                            {
+                                                "dynamicResource": "observation_variables",
+                                                "field": "Type",
+                                                "value": ["Measurement","Date","Computation"]
+                                            }
+                                        ]
+                                    },
+                                    "maximum": {
+                                        "field": "MaximumValue", 
+                                        "linkedResource": "valid_ranges",
+                                        "condition": [
+                                            {
+                                                "dynamicResource": "observation_variables",
+                                                "field": "Type",
+                                                "value": ["Measurement","Date","Computation"]
+                                            }
+                                        ]
+                                    },
+                                    "enum": {
+                                        "field": "RatingScore*", 
+                                        "linkedResource": "rating_scores",
+                                        "condition": [
+                                            {
+                                                "dynamicResource": "observation_variables",
+                                                "field": "Type",
+                                                "value": "Rating score"
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                "name": {
+                                    "field": "VariableID*", 
+                                    "dynamicResource": "observation_variables", 
+                                    "postfix": ".date"
+                                },
+                                "type": "integer",
+                                "constraints": {
+                                    "required": false,
+                                    "minimum": 18000000,
+                                    "maximum": 21000000
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "authorized_values",
+            "optional": false
+        }
+    ]
+}
