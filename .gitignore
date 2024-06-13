@@ -1,8 +1,10 @@
 .DS_Store
 .ipynb_checkpoints
 /build
-/test
+/dist
 /modules
 /data
+/script_test
+publish.txt
 __pycache__
 *.egg-info
