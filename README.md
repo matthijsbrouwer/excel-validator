@@ -1,4 +1,4 @@
-# XLSX validator
+# Excel Validator
 
 
 ---

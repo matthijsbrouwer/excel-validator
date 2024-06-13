@@ -4,7 +4,7 @@
 import logging
 import textwrap
 from frictionless import Report
-from xlsx_validator.functions import excelCoordinates
+from .functions import excelCoordinates
 
 class ValidationReport:
     """

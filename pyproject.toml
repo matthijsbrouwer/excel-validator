@@ -1,9 +1,9 @@
 [project]
-name = "xlsx-validator"
+name = "excel-validator"
 authors = [
   { name="Matthijs Brouwer", email="matthijs.brouwer@wur.nl" },
 ]
-description = "Validation of template based XLSX-files"
+description = "Validation of template based Excel files"
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
@@ -16,10 +16,10 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/matthijsbrouwer/xlsx-validator"
+Homepage = "https://github.com/matthijsbrouwer/excel-validator"
 
 [project.scripts]
-xlsx_validator = "xlsx_validator.script.service:service"
+excel_validator = "excel_validator.script.service:service"
 
 [build-system]
 requires = [
@@ -30,11 +30,11 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.package-data]
-xlsx_validator = ["**/*.json"]
+excel_validator = ["**/*.json"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 
 [tool.read_version]
-version = "src.xlsx_validator._version:__version__"
+version = "src.excel_validator._version:__version__"
 
