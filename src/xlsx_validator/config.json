@@ -1,0 +1,291 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",  
+    "$id": "https://www.plantbreeding.wur.nl/xlsx-validator/configuration.schema.json",  
+    "title": "Configuration xlsx-validator",  
+    "description": "A configuration file for the xlsx-validator package",
+    "type": "object",
+    "properties": {
+        "settings": {
+            "type": "object",
+            "description": "General settings",
+            "properties": {
+                "allowAdditionalSheets": {
+                    "type": "boolean", 
+                    "description": "Allow presence of additional sheets",
+                    "default": false
+                },
+                "requireSheetOrder": {
+                    "type": "boolean", 
+                    "description": "Require the sheets to be in the defined order", 
+                    "default": false
+                },
+                "adjustTypeForStringColumns": {
+                    "type": "boolean", 
+                    "description": "Automatically adjust type for string columns", 
+                    "default": false
+                },
+                "removeEmptyRows": {
+                    "type": "boolean", 
+                    "description": "Automatically remove empty rows", 
+                    "default": false
+                },
+                "removeEmptyColumns": {
+                    "type": "boolean", 
+                    "description": "Automatically remove empty columns", 
+                    "default": false
+                },
+                "schemaPath": {
+                    "type": "string", 
+                    "description": "Location additional modules", 
+                    "default": false
+                },
+                "modulesPath": {
+                    "type": "string", 
+                    "description": "Location additional modules", 
+                    "default": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "sheets": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Name of the sheet"},
+                    "optional": {"type": "boolean"},
+                    "dependencies": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "resource": {
+                        "type": "string", 
+                        "description": "Name of the resource; can only contain lowercase alphanumeric characters plus ., - and _", 
+                        "pattern": "^[a-z0-9][a-z0-9\\.,\\-_]*$"},
+                    "adjustTypeForStringColumns": {
+                        "type": "boolean", 
+                        "description": "Automatically adjust type for string columns, does override settings"
+                    },
+                    "removeEmptyRows": {
+                        "type": "boolean", 
+                        "description": "Automatically remove empty rows, does override settings"
+                    },
+                    "removeEmptyColumns": {
+                        "type": "boolean", 
+                        "description": "Automatically remove empty columns, does override settings"
+                    },
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "file": {"type": "string"},
+                            "data": {"type": "object"},
+                            "dynamic": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "position": {"type": "string", "enum": ["before","after"]},
+                                        "field": {"type": "string"},
+                                        "dynamicResources": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "resource": {"type": "string"},
+                                                    "condition": {"$ref": "#/$defs/conditionResource"}
+                                                },
+                                                "required": ["resource"],
+                                                "additionalProperties": false
+                                            }
+                                        },
+                                        "linkedResources": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "resource": {"type": "string"},
+                                                    "condition": {"$ref": "#/$defs/conditionLinkedResource"}
+                                                },
+                                                "required": ["resource"],
+                                                "additionalProperties": false
+                                            }
+                                        },
+                                        "mappings": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "default": {"type": "string"},
+                                                    "map": {
+                                                        "type": "object",
+                                                        "additionalProperties": {"$ref": "#/$defs/anyValue"}
+                                                    }
+                                                },
+                                                "required": ["map"],
+                                                "additionalProperties": false
+                                            }
+                                        },                                        
+                                        "fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "patternProperties": {
+                                                    "name|type|rdfType|title|format|example|description": {"oneOf": [
+                                                        {"type": "string"},
+                                                        {"$ref": "#/$defs/fieldProperty"}
+                                                    ]}
+                                                },
+                                                "properties": {
+                                                    "constraints": {
+                                                        "type": "object",
+                                                        "patternProperties": {
+                                                            "required|unique": {"oneOf": [
+                                                                {"type": "boolean"},
+                                                                {"$ref": "#/$defs/fieldProperty"}]
+                                                            },
+                                                            "minLength|maxLength": {"oneOf": [
+                                                                {"type": "integer"},
+                                                                {"$ref": "#/$defs/fieldProperty"}
+                                                            ]},
+                                                            "minimum|maximum": {"oneOf": [
+                                                                {"type": "number"},
+                                                                {"$ref": "#/$defs/fieldProperty"}
+                                                            ]},
+                                                            "pattern": {"oneOf": [
+                                                                {"type": "string"},
+                                                                {"$ref": "#/$defs/fieldProperty"}
+                                                            ]},
+                                                            "enum": {"oneOf": [
+                                                                {"type": "array", "items": {"$ref": "#/$defs/anyValue"}},
+                                                                {"$ref": "#/$defs/fieldProperty"}
+                                                            ]}
+                                                        },
+                                                        "additionalProperties": false
+                                                    }
+                                                },
+                                                "required": ["name"],
+                                                "additionalProperties": false
+                                            }
+                                        }
+                                    },
+                                    "required": ["position","fields"],
+                                    "additionalProperties": false
+                                }
+                            }
+                        },
+                        "oneOf": [
+                            {"required": ["file"], "not": {"required": ["data"]}},
+                            {"required": ["data"], "not": {"required": ["file"]}}
+                        ],
+                        "additionalProperties": false
+                    },
+                    "checklist": {
+                        "type": "object",
+                        "properties": {
+                            "file": {"type": "string"},
+                            "data": {"type": "object"}
+                        },
+                        "oneOf": [
+                            {"required": ["file"], "not": {"required": ["data"]}},
+                            {"required": ["data"], "not": {"required": ["file"]}}
+                        ],
+                        "additionalProperties": false
+                    },
+                    "modules": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {"type": "string", "description": "Name of the module"},
+                                "config": {"type": "object", "description": "Configuration"}
+                            }
+                        },
+                        "required": ["name"],
+                        "additionalProperties": false
+                    }
+                },
+                "required": ["name"],
+                "additionalProperties": false
+            }
+        }
+    },
+    "required": ["settings","sheets"],
+    "additionalProperties": false,
+    "$defs": {
+        "anyValue": {
+            "type": ["string","number"]
+        },
+        "conditionResource": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "field": {"type": "string"},
+                    "value": {"$ref": "#/$defs/anyValue"}
+                }
+            },
+            "required": ["field","value"]
+        },
+        "conditionLinkedResource": {
+            "type": "array",
+            "description": "condition on linkedResource based on value or dynamicResource",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "field": {"type": "string"},
+                    "value": {
+                        "oneOf": [
+                            {"$ref": "#/$defs/anyValue"},
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "field": {"type": "string"},
+                                    "dynamicResource": {"type": "string"}
+                                },
+                                "required": ["field","dynamicResource"],
+                                "additionalProperties": false
+                            }
+                        ]
+                    }
+                }
+            },
+            "required": ["field","value"]
+        },
+        "conditionFieldProperty": {
+            "type": "array",
+            "description": "condition on dynamicResource to be satisfied to add field property",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "dynamicResource": {"type": "string"},
+                    "field": {"type": "string"},
+                    "value": {"oneOf": [
+                        {"type": "array", "items": {"$ref": "#/$defs/anyValue"}},
+                        {"$ref": "#/$defs/anyValue"}
+                    ]}
+                }
+            },
+            "required": ["dynamicResource","field","value"]
+        },
+        "fieldProperty": {
+            "type": "object",
+            "description": "field property with value generated from linkedResource or dynamicResource",
+            "properties": {
+                "field": {"type": "string"}, 
+                "linkedResource": {"type": "string"},
+                "dynamicResource": {"type": "string"},
+                "condition": {"$ref": "#/$defs/conditionFieldProperty"},
+                "mapping": {"type": "string"},
+                "prefix": {"type": "string"},
+                "postfix": {"type": "string"}
+            },
+            "oneOf": [
+                {"required": ["field","linkedResource"], "not": {"required": ["dynamicResource"]}},
+                {"required": ["field","dynamicResource"], "not": {"required": ["linkedResource"]}}
+            ],
+            "additionalProperties": false
+        }
+    }
+}
