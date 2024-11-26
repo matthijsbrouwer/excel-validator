@@ -1,0 +1,70 @@
+{
+    "fields": [
+        {
+            "name": "obsUnitId",
+            "title": "Observation unit ID",
+            "description": "The identifier of the observation unit (cross-referencing to Observation Unit worksheet) from which this sample was extracted.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "sampleId",
+            "title": "Sample ID",
+            "description": "Unique identifier for the sample.",
+            "type": "string",
+            "constraints": {
+                "required": true,
+                "unique": true
+            }
+        },
+        {
+            "name": "developmentStage",
+            "title": "Plant structure development stage",
+            "description": "The stage in the life of a plant structure during which the sample was taken, in the form of an accession number to a suitable controlled vocabulary (Plant Ontology, BBCH scale)",
+            "type": "string"
+        },
+        {
+            "name": "anatomicalEntity",
+            "title": "Plant anatomical entity",
+            "description": "A description of  the plant part (e.g. leaf) or the plant product (e.g. resin) from which the sample was taken, in the form of an accession number to a suitable controlled vocabulary (Plant Ontology).",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "sampleDesc",
+            "title": "Sample description",
+            "description": "Any information not captured by the other sample fields, including quantification, sample treatments and processing.",
+            "type": "string"
+        },
+        {
+            "name": "collectionDate",
+            "title": "Collection date",
+            "description": "The date and time when the sample was collected / harvested",
+            "type": "date",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "externalId",
+            "title": "Sample external ID",
+            "description": "An identifier for the sample in a persistent repository, comprising the name of the repository and the accession number of the observation unit therein. Submission to the EBI Biosamples repository is recommended. URI are recommended when possible.",
+            "type": "string"
+        }
+    ],
+    "primaryKey": "sampleId",
+    "foreignKeys": [
+        {
+            "fields": ["obsUnitId"],
+            "reference": {
+                "fields": ["obsUnitId"],
+                "resource": "observationunit"
+            }
+        }
+    ],
+    "missingValues": [""]
+}

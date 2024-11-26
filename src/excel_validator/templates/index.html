@@ -1,0 +1,10 @@
+{% include "block_header.html" %}
+<main role="main" class="container">
+    <p class="text-left">{{ textIntro | safe }}</p>
+    <div class="list-group">
+        {% for service in services%}
+        <a href="{{ url_for("index", path=service[0]) }}" class="list-group-item list-group-item-action">{{ service[1] }}</a>
+        {% endfor %}
+    </div>
+</main>
+{% include "block_footer.html" %}

@@ -1,0 +1,10 @@
+{
+    "steps": [
+        {"type": "field-filter", "names": ["studyId"]},
+        {"type": "field-update", "name": "studyId", "formula": "studyId or ''"},
+        {"type": "field-add", "name": "originalStudyId", "formula": "studyId", "descriptor": {"type": "string"}},
+        {"type": "row-add", "fieldName": "studyId", "pattern": ";"},
+        {"type": "field-update", "name": "studyId", "formula": "str.strip(studyId)"},
+        {"type": "row-search", "fieldName": "studyId", "regex": ".+"}
+    ]
+}

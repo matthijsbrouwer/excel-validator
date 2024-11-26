@@ -1,0 +1,38 @@
+{
+    "fields": [
+        {
+            "name": "studyId",
+            "title": "Study unique ID",
+            "description": "Semicolon-separated list of (internal) study identifiers (cross-referencing to study worksheet) where the event was recorded.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "expeFactorType",
+            "title": "Experimental Factor type",
+            "description": "Name/Acronym of the experimental factor.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "expeFactorDesc",
+            "title": "Experimental Factor description",
+            "description": "Free text description of the experimental factor. This includes all relevant treatments planification and protocol planned for all the plants targeted by a given experimental factor.",
+            "type": "string"
+        },
+        {
+            "name": "expeFactorValues",
+            "title": "Experimental Factor values",
+            "description": "List of possible values for the factor.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        }
+    ],
+    "missingValues": [""]
+}

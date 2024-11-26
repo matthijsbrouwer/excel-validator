@@ -215,3 +215,28 @@ def excelCoordinates(error):
         return None
     except:
         return None
+
+def excelTransformCoordinates(error, rowCellId=None):
+    """
+    compute excel coordinates for frictionless error
+    """
+    try:
+        row = error.get_defined(name="row_number",default=None)
+        col = error.get_defined(name="field_number",default=None)
+        LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        if not col is None and not np.isnan(col):
+            result = []
+            while col:
+                col, rem = divmod(col-1, 26)
+                result[:0] = LETTERS[int(rem)]
+            if not row is None and not np.isnan(row):
+                text = "{}{}".format("".join(result),int(row))
+                return text
+            text = "column {}".format("".join(result))
+            return text
+        if not row is None and not np.isnan(row):
+            text = "row {}".format(int(row))
+            return text
+        return None
+    except:
+        return None

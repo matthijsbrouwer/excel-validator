@@ -1,0 +1,167 @@
+{
+    "fields": [
+        {
+            "name": "studyId",
+            "title": "Study unique ID",
+            "description": "Semicolon-separated list of (internal) study identifiers (cross-referencing to study worksheet) where the event was recorded.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "biologicalMaterialId",
+            "title": "Biological material ID",
+            "description": "Code used to identify the biological material in the data file. Should be unique within the Investigation. Can correspond to experimental plant ID, seed lot ID, etc… This material identification is different from a BiosampleID which corresponds to Observation Unit or Samples sections below.",
+            "type": "string",
+            "constraints": {
+                "required": true,
+                "unique": true
+            }
+        },
+        {
+            "name": "biologicalMaterialExtId",
+            "title": "Biological material external ID",
+            "description": "One to many identifiers for the biological material. Can include EBI Biosamples ID. URI are recommended when possible.",
+            "type": "string"
+        },
+        {
+            "name": "organism",
+            "title": "Organism",
+            "description": "An identifier for the organism at the species level. Use of the NCBI taxon ID is recommended. ",
+            "example": "NCBITAXON:4577",
+            "type": "string"
+        },
+        {
+            "name": "genus",
+            "title": "Genus",
+            "description": "Genus name for the organism under study, according to standard scientific nomenclature.",
+            "example": "Zea ; Solanum",
+            "type": "string"
+        },
+        {
+            "name": "species",
+            "title": "Species",
+            "description": "Species name (formally: specific epithet) for the organism under study, according to standard scientific nomenclature.",
+            "example": "mays ; lycosperium x pennellii",
+            "type": "string"
+        },
+        {
+            "name": "infraspecificName",
+            "title": "Infraspecific name",
+            "description": "Name of any subtaxa level, including variety, crossing name, etc. It can be used to store any additional taxonomic identifier. To be filled as key-value pair list format (the key is the name of the rank/category and the value is the value of  the rank/category). Ranks/categories can be among the following terms: subspecies, cultivar, variety, subvariety, convariety, group, subgroup, hybrid, line, form, subform. For MCPD compliance, the following abbreviations are allowed: \"subsp.\" (subspecies); \"convar.\" (convariety); \"var.\" (variety); \"f.\" (form); \"Group\" (cultivar group). MIAPPE adds \"cv.\" (cultivar).",
+            "example": "subspecies:vinifera, cultivar:Pinot noir ; subsp.:aestivum, cv.:Weneda, Group:winter ; subsp. vinifera cv. Pinot Noir",
+            "type": "string"
+        },
+        {
+            "name": "biologicalMaterialLatitude",
+            "title": "Biological material latitude",
+            "description": "Latitude of the studied biological material. [Alternative identifier for in situ material]",
+            "type": "number"
+        },
+        {
+            "name": "biologicalMaterialLongitude",
+            "title": "Biological material longitude",
+            "description": "Longitude of the studied biological material. [Alternative identifier for in situ material]",
+            "type": "number"
+        },
+        {
+            "name": "biologicalMaterialAltitude",
+            "title": "Biological material altitude",
+            "description": "Altitude of the studied biological material, provided in meters (m). [Alternative identifier for in situ material]",
+            "example": "10 m",
+            "type": "string"
+        },
+        {
+            "name": "biologicalMaterialCoordUncertainty",
+            "title": "Biological material coordinates uncertainty",
+            "description": "Circular uncertainty of the coordinates, preferably provided in meters (m). [Alternative identifier for in situ material]",
+            "example": "100 m",
+            "type": "string"
+        },
+        {
+            "name": "biologicalMaterialPreprocessing",
+            "title": "Biological material preprocessing",
+            "description": "Description of any process or treatment applied uniformly to the biological material, prior to the study itself. Can be provided as free text or as an accession number from a suitable controlled vocabulary.",
+            "type": "string"
+        },
+        {
+            "name": "materialSourceId",
+            "title": "Material source ID (Holding institute/stock centre, accession)",
+            "description": "An identifier for the source of the biological material, in the form of a key-value pair comprising the name/identifier of the repository from which the material was sourced plus the accession number of the repository for that material. Where an accession number has not been assigned, but the material has been derived from the crossing of known accessions, the material can be defined as follows: \"mother_accession X father_accession\", or, if father is unknown, as \"mother_accession X UNKNOWN\". For in situ material, the region of provenance may be used when an accession is not available. The Material source is commonly called germplasm, accession, genotype and even variety for commercial varieties. For the latest, keep in mind that a variety is commonly ambiguously identified and polysemous",
+            "type": "string"
+        },
+        {
+            "name": "materialSourceDoi",
+            "title": "Material source DOI",
+            "description": "Digital Object Identifier (DOI) of the material source",
+            "example": "doi:10.15454/1.4658436467893904E12",
+            "type": "string"
+        },
+        {
+            "name": "materialSourceAccNumber",
+            "title": "Material source accession number",
+            "description": "Unique identifier for accessions within a genebank. If material source is not from a genebank, use a laboratory ID. In the case of a commercial variety, use the variety code, or name if no code available.",
+            "type": "string"
+        },
+        {
+            "name": "materialSourceAccName",
+            "title": "Material source accession name",
+            "description": "Can be: (i)genebank accession registered name or other designation given to the material, other than the donor's accession number or collecting number. (ii) Variety name.",
+            "type": "string"
+        },
+        {
+            "name": "materialSourceInstCode",
+            "title": "Material source institute code",
+            "description": "FAO WIEWS code of the institute where the accession is maintained. The current set of institute codes is available from https://www.fao.org/wiews. If no institute code is available, create your own (Laboratory acronym or research institute acronym ...).",
+            "example": "FRA09",
+            "type": "string"
+        },
+        {
+            "name": "materialSourceInstName",
+            "title": "Material source institute name",
+            "description": "Name of the material source institute.",
+            "type": "string"
+        },
+        {
+            "name": "materialSourceOtherIds",
+            "title": "Material source other identifiers",
+            "description": "Any other identifiers known to exist in other collections for this material source. Use key:value pairs, separated by semicolons.",
+            "type": "string"
+        },
+        {
+            "name": "materialSourceLatitude",
+            "title": "Material source latitude",
+            "description": "Latitude of the material source. [Alternative identifier for in situ material]",
+            "type": "number"
+        },
+        {
+            "name": "materialSourceLongitude",
+            "title": "Material source longitude",
+            "description": "Longitude of the material source. [Alternative identifier for in situ material]",
+            "type": "number"
+        },
+        {
+            "name": "materialSourceAltitude",
+            "title": "Material source altitude",
+            "description": "Altitude of the material source, provided in metres (m). [Alternative identifier for in situ material]",
+            "example": "10 m",
+            "type": "string"
+        },
+        {
+            "name": "materialSourceCoordUncertainty",
+            "title": "Material source coordinates uncertainty",
+            "description": "Circular uncertainty of the coordinates, provided in meters (m). [Alternative identifier for in situ material]",
+            "example": "200 m",
+            "type": "string"
+        },
+        {
+            "name": "materialSourceDesc",
+            "title": "Material source description",
+            "description": "Description of the material source",
+            "type": "string"
+        }
+    ],
+    "primaryKey": "biologicalMaterialId",
+    "missingValues": [""]
+}

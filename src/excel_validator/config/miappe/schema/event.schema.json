@@ -1,0 +1,59 @@
+{
+    "fields": [
+        {
+            "name": "studyId",
+            "title": "Study unique ID",
+            "description": "Semicolon-separated list of (internal) study identifiers (cross-referencing to study worksheet) where the event was recorded.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "obsUnitId",
+            "title": "Observation unit ID",
+            "description": "The identifier of the observation unit (cross-referencing to Observation Unit worksheet) for which the event was recorded. Fill only if the event happened at the observation unit level rather than the whole study level.",
+            "type": "string"
+        },
+        {
+            "name": "eventType",
+            "title": "Event type",
+            "description": "Short name of the event.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "eventAccNumber",
+            "title": "Event accession number",
+            "description": "Accession number of the event type in a suitable controlled vocabulary (Crop Ontology).",
+            "type": "string"
+        },
+        {
+            "name": "eventDesc",
+            "title": "Event description",
+            "description": "Description of the event, including details such as amount applied and possibly duration of the event.",
+            "type": "string"
+        },
+        {
+            "name": "eventDate",
+            "title": "Event date",
+            "description": "Date and time of the event.",
+            "type": "date",
+            "constraints": {
+                "required": true
+            }
+        }
+    ],
+    "foreignKeys": [
+        {
+            "fields": ["obsUnitId"],
+            "reference": {
+                "fields": ["obsUnitId"],
+                "resource": "observationunit"
+            }
+        }
+    ],
+    "missingValues": [""]
+}

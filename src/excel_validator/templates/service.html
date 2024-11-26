@@ -1,0 +1,28 @@
+{% include "block_header.html" %}
+<main role="main" class="container" data-api="{{ url_for("index", path=api) }}">
+    <div class="mb-3 form">
+        <label for="formFile" class="form-label">{{ textUpload }}</label>
+        <input class="form-control w-auto" name="file" type="file" id="formFile">
+        <div class="error text-danger"></div>
+    </div>
+    <div class="mb-3 status">
+        <table class="table table-bordered w-auto">
+            <tbody>
+                <tr>
+                    <th scope="row">Filename</th>
+                    <td class="uploadFilename">{{ filename }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Filesize</th>
+                    <td class="uploadFilesize">{{ filesize }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Uploaded</th>
+                    <td class="uploadFiletime">{{ filetime }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <input class="delete" type="button" value="delete">
+    </div>
+</main>
+{% include "block_footer.html" %}

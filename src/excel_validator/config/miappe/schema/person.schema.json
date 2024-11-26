@@ -1,0 +1,51 @@
+{
+    "fields": [
+        {
+            "name": "studyId",
+            "title": "Study unique ID",
+            "description": "Semicolon-separated list of (internal) study identifiers (cross-referencing to study worksheet) in which the person was involved.",
+            "type": "string"
+        },
+        {
+            "name": "personName",
+            "title": "Person name",
+            "description": "The name of the person (either full name or as used in scientific publications)",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "personEmail",
+            "title": "Person email",
+            "description": "The electronic mail address of the person.",
+            "type": "string",
+            "format": "email"  
+        },
+        {
+            "name": "personId",
+            "title": "Person ID",
+            "description": "An identifier for the data submitter. If that submitter is an individual, ORCID identifiers are recommended.",
+            "type": "string"
+        },
+        {
+            "name": "personRole",
+            "title": "Person role",
+            "description": "Type of contribution of the person to the investigation",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "personAffiliation",
+            "title": "Person affiliation",
+            "description": "The institution the person belongs to",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        }
+    ],
+    "missingValues": [""]
+}

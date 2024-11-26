@@ -7,14 +7,17 @@ import sys
 import re
 import time
 import itertools
+import pathlib
 from shutil import copyfile
 import json
 import jsonschema
 import pandas as pd
 import tempfile
+import importlib
+import inspect
 from tqdm import tqdm
 from openpyxl import reader, load_workbook
-from frictionless import Package, Dialect, Resource, Schema, Checklist, Field, fields, settings, formats, describe
+from frictionless import Package, Dialect, Resource, Schema, Checklist, Check, Field, Pipeline, fields, settings, formats, describe, system
 from ._version import __version__
 from .report import ValidationReport
 from .functions import setDescriptorValueDynamicString
@@ -48,6 +51,7 @@ class Validate:
     ERROR_MISSING_COLUMNS      = "Missing Columns"
     ERROR_UNRECOGNIZED_COLUMNS = "Unrecognized Columns"
     ERROR_ORDER_COLUMNS        = "Incorrect Order Columns"
+    ERROR_CONFIGURATION        = "No valid configuration"
 
     WARNING_TYPE               = "Incorrect Type"
     WARNING_EMPTY_ROW          = "Empty Rows"
@@ -65,6 +69,7 @@ class Validate:
 
         #initialise
         self._wb = None
+        self._checks = None
         
         #check file and define basepath for output
         filename = os.path.abspath(filename)
@@ -76,37 +81,44 @@ class Validate:
         
         if args.get("create", False):
             config_filename = str(args.get("create"))
-            configDirectoryPattern = re.compile("^[a-zA-Z\_]+$")
-            if configDirectoryPattern.match(config_filename):
-                config_location = os.path.abspath(config_filename)
-                if os.path.exists(config_filename):
-                    raise Exception("couldn't create configuration, already exists")
-                else:                    
-                    self._filename = os.path.basename(filename)
-                    with tempfile.TemporaryDirectory() as tmp_dir:
-                        output_filename = os.path.join(tmp_dir,self._filename)
-                        copyfile(filename,output_filename)
-                        self._basepath = tmp_dir
-                        self._createConfiguration(config_location)
-                    self._basepath = None
-            else:
-                raise Exception("couldn't create configuration at %s" % config_filename)
+            config_location = os.path.abspath(config_filename)
+            if os.path.exists(config_filename):
+                raise Exception("couldn't create configuration, %s already exists" % os.path.basename(config_filename))
+            else:                    
+                self._filename = os.path.basename(filename)
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    output_filename = os.path.join(tmp_dir,self._filename)
+                    copyfile(filename,output_filename)
+                    self._basepath = tmp_dir
+                    self._createConfiguration(config_location)
+                self._basepath = None
 
-        else:            
-            #initialise for validation
-            self._package = Package()
-            self._name = args.get("name", os.path.basename(filename))
-            self._report = ValidationReport(self._logger)
-            self._expectedSheets = set()
+        else:        
             #check configuration
             configurationFilename = os.path.abspath(configuration)
             assert os.path.isfile(configurationFilename) and os.access(configurationFilename, os.R_OK), \
                     "Configuration file '{}' doesn't exist or isn't readable".format(configuration)
             self._parseConfiguration(configurationFilename)
-            #add modules to path
-            if self._modulesPath and not self._modulesPath in sys.path: sys.path.append(self._modulesPath)
+            #load plugins
+            if not self._config is None and self._pluginPath:
+                if(os.path.isdir(self._pluginPath)):
+                    for file in os.listdir(self._pluginPath):
+                        if os.path.isfile(os.path.join(self._pluginPath, file)):
+                            try:
+                                customChecks = importlib.machinery.SourceFileLoader(pathlib.Path(file).stem, 
+                                                    os.path.join(self._pluginPath, file)).load_module()
+                                members = inspect.getmembers(customChecks, inspect.isclass)
+                                for member in members:
+                                    system.register(member[0],member[1]())
+                            except Exception as ex:
+                                raise Exception("could not load plugin %s: %s" % (os.path.basename(file),ex))
+            #initialise for validation
+            self._package = Package()
+            self._name = args.get("name", os.path.basename(filename))
+            self._report = ValidationReport(self._logger)
+            self._expectedSheets = set()
             #start validation
-            if self._config:
+            if not self._config is None:
                 self._filename = os.path.basename(filename)
                 if not args.get("updateFile", False):
                     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -137,6 +149,7 @@ class Validate:
         configuration = {
             "settings": {
                 "schemaPath": "schema",
+                "pluginPath": "plugins",
                 "allowAdditionalSheets": False,
                 "requireSheetOrder": True,
                 "adjustTypeForStringColumns": True,
@@ -175,12 +188,42 @@ class Validate:
         #store
         with open(os.path.join(configurationLocation,"config.json"), "w") as f:
             json.dump(configuration, f, ensure_ascii=False)
-        
+
+    def _addSchemaDependencies(self, resource, name, dependencies, schema):
+        #update dependencies
+        for entry in schema["data"].get("foreignKeys",[]):
+            if "reference" in entry and "resource" in entry["reference"]:
+                if not entry["reference"]["resource"]==resource:
+                    if entry["reference"]["resource"] in self._resourceSheet:
+                        sheetName = self._resourceSheet[entry["reference"]["resource"]]
+                        if not sheetName in dependencies:
+                            dependencies.append(sheetName)
+                            self._logger.debug("set dependency on '%s for '%s' based on frictionless schema",
+                                sheetName,name)
+        for entry in schema.get("dynamic",[]):
+            if "dynamicResources" in entry:
+                for value in entry["dynamicResources"].values():
+                    if value["resource"] in self._resourceSheet:
+                        sheetName = self._resourceSheet[value["resource"]]
+                        if not sheetName in dependencies:
+                            dependencies.append(sheetName)
+                            self._logger.debug("set dependency on '%s' for '%s' based on dynamic frictionless schema",
+                                               sheetName,name)
+            if "linkedResources" in entry:
+                for value in entry["linkedResources"].values():
+                    if value["resource"] in self._resourceSheet:
+                        sheetName = self._resourceSheet[value["resource"]]
+                        if not sheetName in dependencies:
+                            dependencies.append(sheetName)
+                            self._logger.debug("set dependency on '%s' for '%s' based on dynamic frictionless schema",
+                                sheetName,name)
+        return dependencies
+
+
     def _parseConfiguration(self, configurationFilename: str):
         self._config = None
         self._allowedSheets = []
         self._resourceSheet = {}
-        self._modulesPath = None
         self._schemaPath = None
         try:
             with open(configurationFilename, encoding="UTF-8") as configurationData:
@@ -189,14 +232,14 @@ class Validate:
                 schema = json.load(configurationSchema)
             jsonschema.validate(self._config,schema)
             #set paths
-            self._modulesPath = self._config.get("settings",{}).get("modulesPath",None)
-            if self._modulesPath:
-                if not os.path.isabs(self._modulesPath):
-                    self._modulesPath = os.path.abspath(os.path.join(os.path.dirname(configurationFilename),self._modulesPath))
             self._schemaPath = self._config.get("settings",{}).get("schemaPath",None)
             if self._schemaPath:
                 if not os.path.isabs(self._schemaPath):
                     self._schemaPath = os.path.abspath(os.path.join(os.path.dirname(configurationFilename),self._schemaPath))
+            self._pluginPath = self._config.get("settings",{}).get("pluginPath",None)
+            if self._pluginPath:
+                if not os.path.isabs(self._pluginPath):
+                    self._pluginPath = os.path.abspath(os.path.join(os.path.dirname(configurationFilename),self._pluginPath))
             #loop over definitions
             for i in range(len(self._config["sheets"])):
                 #require unique name
@@ -206,6 +249,19 @@ class Validate:
                     #require unique resource
                     assert self._config["sheets"][i]["resource"] not in self._resourceSheet, "resource name should be unique"
                     self._resourceSheet[self._config["sheets"][i]["resource"]] = self._config["sheets"][i]["name"]
+                    #package
+                    if "package" in self._config:
+                        #checklist
+                        if "checklist" in self._config["package"]:
+                            if "file" in self._config["package"]["checklist"]:
+                                if self._schemaPath:
+                                    checklistFilename = os.path.join(self._schemaPath,
+                                                              self._config["package"]["checklist"]["file"])
+                                else:
+                                    checklistFilename = os.path.join(os.path.dirname(configurationFilename),
+                                                              self._config["package"]["checklist"]["file"])
+                                with open(checklistFilename, encoding="UTF-8") as checklistData:
+                                    self._config["package"]["checklist"]["data"] = json.load(checklistData)
                     #schema
                     if "schema" in self._config["sheets"][i]:
                         if "file" in self._config["sheets"][i]["schema"]:
@@ -228,39 +284,48 @@ class Validate:
                                                           self._config["sheets"][i]["checklist"]["file"])
                             with open(checklistFilename, encoding="UTF-8") as checklistData:
                                 self._config["sheets"][i]["checklist"]["data"] = json.load(checklistData)
+                    #transform
+                    if "transforms" in self._config["sheets"][i]:
+                        for j in range(len(self._config["sheets"][i]["transforms"])):
+                            #require unique resource
+                            assert self._config["sheets"][i]["transforms"][j]["resource"] not in self._resourceSheet, "resource name should be unique"
+                            self._resourceSheet[self._config["sheets"][i]["transforms"][j]["resource"]] = self._config["sheets"][i]["name"]
+                            self._config["sheets"][i]["transforms"][j]["name"] = "%s -> %s" % (
+                                self._config["sheets"][i]["name"], self._config["sheets"][i]["transforms"][j]["resource"])
+                            if "file" in self._config["sheets"][i]["transforms"][j]["pipeline"]:
+                                if self._schemaPath:
+                                    pipelineFilename = os.path.join(self._schemaPath,
+                                                              self._config["sheets"][i]["transforms"][j]["pipeline"]["file"])
+                                else:
+                                    pipelineFilename = os.path.join(os.path.dirname(configurationFilename),
+                                                              self._config["sheets"][i]["transforms"][j]["pipeline"]["file"])
+                                with open(pipelineFilename, encoding="UTF-8") as pipelineData:
+                                    self._config["sheets"][i]["transforms"][j]["pipeline"]["data"] = json.load(pipelineData)
+                            if "file" in self._config["sheets"][i]["transforms"][j]["schema"]:
+                                if self._schemaPath:
+                                    schemaFilename = os.path.join(self._schemaPath,
+                                                              self._config["sheets"][i]["transforms"][j]["schema"]["file"])
+                                else:
+                                    schemaFilename = os.path.join(os.path.dirname(configurationFilename),
+                                                              self._config["sheets"][i]["transforms"][j]["schema"]["file"])
+                                with open(schemaFilename, encoding="UTF-8") as schemaData:
+                                    self._config["sheets"][i]["transforms"][j]["schema"]["data"] = json.load(schemaData)
             #reloop over definitions to get dependencies
             for i in range(len(self._config["sheets"])):
                 if not "dependencies" in self._config["sheets"][i]:
                     self._config["sheets"][i]["dependencies"] = []
                 #check schema
                 if "resource" in self._config["sheets"][i] and "schema" in self._config["sheets"][i]:
-                    #update dependencies
-                    for entry in self._config["sheets"][i]["schema"]["data"].get("foreignKeys",[]):
-                        if "reference" in entry and "resource" in entry["reference"]:
-                            if not entry["reference"]["resource"]==self._config["sheets"][i]["resource"]:
-                                if entry["reference"]["resource"] in self._resourceSheet:
-                                    sheetName = self._resourceSheet[entry["reference"]["resource"]]
-                                    if not sheetName in self._config["sheets"][i]["dependencies"]:
-                                        self._config["sheets"][i]["dependencies"].append(sheetName)
-                                        self._logger.debug("set dependency on '%s for '%s' based on frictionless schema",
-                                            sheetName,self._config["sheets"][i]["name"])
-                    for entry in self._config["sheets"][i]["schema"].get("dynamic",[]):
-                        if "dynamicResources" in entry:
-                            for value in entry["dynamicResources"].values():
-                                if value["resource"] in self._resourceSheet:
-                                    sheetName = self._resourceSheet[value["resource"]]
-                                    if not sheetName in self._config["sheets"][i]["dependencies"]:
-                                        self._config["sheets"][i]["dependencies"].append(sheetName)
-                                        self._logger.debug("set dependency on '%s' for '%s' based on dynamic frictionless schema",
-                                                           sheetName,self._config["sheets"][i]["name"])
-                        if "linkedResources" in entry:
-                            for value in entry["linkedResources"].values():
-                                if value["resource"] in self._resourceSheet:
-                                    sheetName = self._resourceSheet[value["resource"]]
-                                    if not sheetName in self._config["sheets"][i]["dependencies"]:
-                                        self._config["sheets"][i]["dependencies"].append(sheetName)
-                                        self._logger.debug("set dependency on '%s' for '%s' based on dynamic frictionless schema",
-                                            sheetName,self._config["sheets"][i]["name"])
+                    self._config["sheets"][i]["dependencies"] = self._addSchemaDependencies(
+                        self._config["sheets"][i]["resource"], self._config["sheets"][i]["name"], 
+                        self._config["sheets"][i]["dependencies"], self._config["sheets"][i]["schema"])
+                if "resource" in self._config["sheets"][i]:
+                    if "transforms" in self._config["sheets"][i]:
+                        for j in range(len(self._config["sheets"][i]["transforms"])):
+                            if "schema" in self._config["sheets"][i]["transforms"][j]:
+                                self._config["sheets"][i]["dependencies"] = self._addSchemaDependencies(
+                                    self._config["sheets"][i]["resource"], self._config["sheets"][i]["name"], 
+                                    self._config["sheets"][i]["dependencies"], self._config["sheets"][i]["transforms"][j]["schema"])
         except Exception as ex:
             self._logger.error("Could not parse configuration: %s", str(ex))
             self._config = None
@@ -296,7 +361,7 @@ class Validate:
         validationSheets = []
         recheckList = []
         for entry in self._config["sheets"]:
-            if "resource" in entry and "schema" in entry:
+            if "resource" in entry:
                 if entry["name"] in self._availableSheets:
                     if len(set(entry["dependencies"]).difference(validationSheets))==0:
                         validationEntries.append(entry)
@@ -592,25 +657,35 @@ class Validate:
             n = progression_bar_size - 13
             sheet = "[%s...]"%entry["name"][:(n-3)] if len(entry["name"])>n else "[%s]"%entry["name"]
             progression_bar.set_description("Validating %s" % sheet.ljust(n+2))
-            resource_validation = self._validateResource(entry)
-            if resource_validation:
-                errorTypes.update([item.type for item in resource_validation.tasks[0].errors])
+            resource = self._createResource(entry)
+            if "schema" in entry:
+                resource_validation = self._validateResource(resource,entry)
+                if resource_validation:
+                    errorTypes.update([item.type for item in resource_validation.tasks[0].errors])
+            #try to add resource
+            self._package.add_resource(resource)   
+            if "transforms" in entry:
+                for j in range(len(entry["transforms"])):
+                    transformResource = self._createTransform(entry["transforms"][j],resource,entry["name"])
+                    if "schema" in entry["transforms"][j]:
+                        resource_validation = self._validateResource(transformResource,entry["transforms"][j])
+                        if resource_validation:
+                            errorTypes.update([item.type for item in resource_validation.tasks[0].errors])
+                    #try to add resource
+                    self._package.add_resource(transformResource)   
             progression_bar.update(1)            
         progression_bar.set_description("Validating package")
         progression_bar.update(1)
         #validate package
-        self._validatePackage(skip_errors = list(errorTypes))
+        packageEntry = self._config.get("package",{})
+        self._validatePackage(packageEntry, skip_errors = list(errorTypes))
         progression_bar.close()
 
-    def _validateResource(self, entry, skip_errors:list=None):
+    def _createResource(self, entry):
         reportId = "resource:{}".format(entry["resource"])
         self._report.addReport(reportId, entry["name"], True, ValidationReport.TYPE_RESOURCE)
         self._report.addReportDebug(reportId,"define resource from sheet '{}'".format(entry["name"]))
-
-        adjustTypeForStringColumns = self._config["settings"].get("adjustTypeForStringColumns", False)
-        removeEmptyRows = self._config["settings"].get("removeEmptyRows", False)
-        removeEmptyColumns = self._config["settings"].get("removeEmptyColumns", False)
-
+        #create resource
         dialectArguments = {}
         dialectArguments["header"] = entry.get("header",self._config["settings"].get(
             "header",settings.DEFAULT_HEADER))
@@ -633,6 +708,26 @@ class Validate:
         if self._package.has_resource(entry["resource"]):
             self._package.remove_resource(entry["resource"])
         resource.name = entry["resource"]
+        return resource
+
+    def _createTransform(self, entry, resource, parentName):
+        reportId = "resource:{}".format(entry["resource"])
+        self._report.addReport(reportId, entry["name"], True, ValidationReport.TYPE_RESOURCE_TRANSFORM, resource.name, parentName)
+        self._report.addReportDebug(reportId,"define transformation from sheet '{}'".format(entry["name"]))
+        #create resource
+        pipeline = Pipeline.from_descriptor(entry["pipeline"]["data"])
+        transform = resource.to_copy()
+        transform.schema = None
+        transform.transform(pipeline)
+        transform.name = entry["resource"]
+        return transform
+
+    def _validateResource(self, resource, entry, skip_errors:list=None):
+        reportId = "resource:{}".format(entry["resource"])
+        adjustTypeForStringColumns = self._config["settings"].get("adjustTypeForStringColumns", False)
+        removeEmptyRows = self._config["settings"].get("removeEmptyRows", False)
+        removeEmptyColumns = self._config["settings"].get("removeEmptyColumns", False)
+        #define full schema
         resource.schema = Schema.from_descriptor(entry["schema"]["data"])
         #dynamic
         if "dynamic" in entry["schema"]:
@@ -728,20 +823,21 @@ class Validate:
                             resource.schema.add_field(newField, position=pos+i+1)
 
         #check types, empty rows and columns
-        pick_errors = []
-        pick_errors += ["type-error"] if adjustTypeForStringColumns else []
-        pick_errors += ["blank-row"] if removeEmptyRows else []
-        pick_errors += ["extra-label"] if removeEmptyColumns else []
-        if len(pick_errors)>0:
-            resource_validation = resource.validate(checklist=Checklist(pick_errors=pick_errors, skip_errors=skip_errors))
-            if not resource_validation.valid:
-                errorTypes = set([item.type for item in resource_validation.tasks[0].errors])
-                if adjustTypeForStringColumns and "type-error" in errorTypes:
-                    self._updateTypeForStringColumns(entry["name"],resource,reportId)
-                if removeEmptyRows and "blank-row" in errorTypes:
-                    self._removeEmptyRowsForSheet(entry["name"],resource,reportId)
-                if removeEmptyColumns and "extra-label" in errorTypes:
-                    self._removeEmptyColumnsForSheet(entry["name"],resource,reportId)
+        if resource.path:
+            pick_errors = []
+            pick_errors += ["type-error"] if adjustTypeForStringColumns else []
+            pick_errors += ["blank-row"] if removeEmptyRows else []
+            pick_errors += ["extra-label"] if removeEmptyColumns else []
+            if len(pick_errors)>0:
+                resource_validation = resource.validate(checklist=Checklist(pick_errors=pick_errors, skip_errors=skip_errors))
+                if not resource_validation.valid:
+                    errorTypes = set([item.type for item in resource_validation.tasks[0].errors])
+                    if adjustTypeForStringColumns and "type-error" in errorTypes:
+                        self._updateTypeForStringColumns(entry["name"],resource,reportId)
+                    if removeEmptyRows and "blank-row" in errorTypes:
+                        self._removeEmptyRowsForSheet(entry["name"],resource,reportId)
+                    if removeEmptyColumns and "extra-label" in errorTypes:
+                        self._removeEmptyColumnsForSheet(entry["name"],resource,reportId)
         #validate
         checklist = Checklist.from_descriptor(entry["checklist"]["data"]) if "checklist" in entry else Checklist()
         checklist.skip_errors = skip_errors
@@ -751,30 +847,22 @@ class Validate:
         if resource_validation.valid and skip_errors is None:
             self._report.addReportInfo(reportId,"succesfull frictionless validation '{}' sheet".format(entry["name"]))
         #check missing columns and possibly revalidate
-        elif skip_errors is None and not resource_validation.valid:
+        elif skip_errors is None and not resource_validation.valid and resource.path:
             if self._checkMissingColumns(entry["name"],resource,reportId):
                 resource_validation = resource.validate(checklist=checklist)
                 self._report.setFrictionless(reportId, resource_validation)
                 self._report.addReportDebug(reportId, resource_validation.stats)
-        #try to add resource
-        self._package.add_resource(resource)                
-        if "modules" in entry:
-            for module in entry["modules"]:
-                try:
-                    moduleObject = __import__(module["name"])
-                    validationModule = moduleObject.ValidationModule(self._package,resource.name)
-                except ModuleNotFoundError:
-                    self._report.addReportWarning(reportId, Validate.WARNING_MODULE, 
-                                                  "could not import module %s" % str(module["name"]))
         #return validation
         return resource_validation
 
-    def _validatePackage(self, skip_errors:list=None):
+    def _validatePackage(self, entry, skip_errors:list=None):
         reportId = "package"
         self._report.addReport(reportId, "Package", True, ValidationReport.TYPE_PACKAGE)
         #validate
         if len(self._package.resources)>0:
-            package_validation = self._package.validate(checklist=Checklist(skip_errors=skip_errors))
+            checklist = Checklist.from_descriptor(entry["checklist"]["data"]) if "checklist" in entry else Checklist()
+            checklist.skip_errors = skip_errors
+            package_validation = self._package.validate(checklist=checklist)
             self._report.setFrictionless(reportId, package_validation)
             self._report.addReportDebug(reportId, package_validation.stats)
         else:

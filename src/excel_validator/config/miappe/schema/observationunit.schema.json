@@ -1,0 +1,61 @@
+{
+    "fields": [
+        {
+            "name": "studyId",
+            "title": "Study unique ID",
+            "description": "Semicolon-separated list of (internal) study identifiers (cross-referencing to study worksheet) where the event was recorded.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "biologicalMaterialId",
+            "title": "Biological Material ID",
+            "description": "Biological Material identifier (cross-referencing to Biological Material worksheet) corresponding to the organism(s) being observed.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "obsUnitId",
+            "title": "Observation unit ID",
+            "description": "Identifier used to identify the observation unit in data files containing the values observed or measured on that unit. Must be locally unique. ",
+            "type": "string",
+            "constraints": {
+                "required": true,
+                "unique": true
+            }
+        },
+        {
+            "name": "obsUnitType",
+            "title": "Observation unit type",
+            "description": "Type of observation unit in textual form, usually one of the following: study, block, sub-block, plot, sub-plot, pot, plant. Use of other observation unit types is possible but not recommended. The observation unit type cannot be used to indicate sub-plant levels. However, observations can still be made on the sub-plant level, as long as the details are indicated in the associated observed variable (see observed variables). Alternatively, it is possible to use samples for more detailed tracing of sub-plant units, attaching the observations to them instead.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "externalId",
+            "title": "Observation unit external ID",
+            "description": "Identifier for the observation unit in a persistent repository, comprises the name of the repository and the identifier of the observation unit therein. The EBI Biosamples repository can be used. URI are recommended when possible.",
+            "type": "string"
+        },
+        {
+            "name": "spatialDistribution",
+            "title": "Spatial distribution",
+            "description": "Type and value of a spatial coordinate (georeference or relative) or level of observation (plot 45, subblock 7, block 2) provided as a key-value pair of the form type:value. Levels of observation must be consistent with those listed in the Study section.",
+            "type": "string"
+        },
+        {
+            "name": "obsUnitFactorValue",
+            "title": "Observation Unit factor value",
+            "description": "List of values for each factor applied to the observation unit.",
+            "type": "string"
+        }
+    ],
+    "primaryKey": "obsUnitId",
+    "missingValues": [""]
+}

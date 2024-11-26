@@ -1,0 +1,155 @@
+{
+    "fields": [
+        {
+            "name": "studyId",
+            "title": "Study unique ID",
+            "description": "Unique identifier comprising the name or identifier for the institution/database hosting the submission of the study data, and the identifier of the study in that institution.",
+            "type": "string",
+            "constraints": {
+                "required": true,
+                "unique": true
+            }
+        },
+        {
+            "name": "studyTitle",
+            "title": "Study title",
+            "description": "Name, human-readable text summarising the study",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "studyDescription",
+            "title": "Study description",
+            "description": "Human-readable text describing the study",
+            "type": "string"
+        },
+        {
+            "name": "studyStartDate",
+            "title": "Start date of study",
+            "description": "Date and, if relevant, time when the experiment started",
+            "type": "date",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "studyEndDate",
+            "title": "End date of study",
+            "description": "Date and, if relevant, time when the experiment ended",
+            "type": "date"
+        },
+        {
+            "name": "contactInst",
+            "title": "Contact institution",
+            "description": "Name and address of the institution responsible for the study.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "locationCountry",
+            "title": "Geographic location (country)",
+            "description": "The country where the experiment took place, either as a full name or preferably as a 2-letter code.",
+            "example": "FR",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "siteName",
+            "title": "Experimental site name",
+            "description": "The name of the natural site, experimental field, greenhouse, phenotyping facility, etc. where the experiment took place.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "locationLatitude",
+            "title": "Geographic location (latitude)",
+            "description": "Latitude of the experimental site in degrees, in decimal format.",
+            "example": "43.619264",
+            "type": "any"
+        },
+        {
+            "name": "locationLongitude",
+            "title": "Geographic location (longitude)",
+            "description": "Longitude of the experimental site in degrees, in decimal format.",
+            "example": "3.967454",
+            "type": "any"
+        },
+        {
+            "name": "locationAltitude",
+            "title": "Geographic location (altitude)",
+            "description": "Altitude of the experimental site, provided in metres (m).",
+            "example": "100 m",
+            "type": "any"
+        },
+        {
+            "name": "expeDesignDesc",
+            "title": "Description of the experimental design",
+            "description": "Short description of the experimental design, possibly including statistical design. In specific cases, e.g. legacy datasets or data computed from several studies, the experimental design can be \"unknown\"/\"NA\", \"aggregated/reduced data\", or simply \"none\".",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "expeDesignType",
+            "title": "Type of experimental design",
+            "description": "Type of experimental  design of the study, in the form of an accession number from the Crop Ontology.",
+            "example": "CO_715:0000145",
+            "type": "string"
+        },
+        {
+            "name": "obsUnitLevelHierarchy",
+            "title": "Observation unit level hierarchy",
+            "description": "Hierarchy of the different levels of repetitions between each others",
+            "example": "block>rep>plot",
+            "type": "string"
+        },
+        {
+            "name": "obsUnitDesc",
+            "title": "",
+            "description": "",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "growthFacilityDesc",
+            "title": "Description of growth facility",
+            "description": "Short description of the facility in which the study was carried out.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "growthFacilityType",
+            "title": "Type of growth facility",
+            "description": "Type of growth facility in which the study was carried out, in the form of an accession number from the Crop Ontology.",
+            "example": "CO_715:0000162",
+            "type": "string"
+        },
+        {
+            "name": "culturalPractice",
+            "title": "Cultural practices",
+            "description": "General description of the cultural practices of the study.",
+            "type": "string"
+        },
+        {
+            "name": "expeDesignMap",
+            "title": "Map of experimental design",
+            "description": "Representation of the experimental design.",
+            "type": "string"
+        }
+    ],
+    "primaryKey": "studyId",
+    "missingValues": [""]
+}

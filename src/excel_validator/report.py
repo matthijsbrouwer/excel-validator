@@ -12,6 +12,7 @@ class ValidationReport:
     """
     TYPE_GENERAL = "General"
     TYPE_RESOURCE = "Resource"
+    TYPE_RESOURCE_TRANSFORM = "Resource Transform"
     TYPE_PACKAGE = "Package"
 
     def __init__(self, logger:logging.Logger):
@@ -19,7 +20,7 @@ class ValidationReport:
         self._reportNames = []
         self._reports = {}
 
-    def addReport(self, name:str, title:str, forceReport:bool, reportType:str):
+    def addReport(self, name:str, title:str, forceReport:bool, reportType:str, parentName:str=None, parentTitle:str=None):
         """
         Add report
         """
@@ -32,7 +33,7 @@ class ValidationReport:
             else:
                 raise KeyError
         self._reportNames.append(name)
-        self._reports[name] = ValidationReportEntry(name,title,reportType)
+        self._reports[name] = ValidationReportEntry(name,title,reportType,parentName,parentTitle)
 
     def addReportError(self, name:str, title:str, description:str, data:str=None):
         """
@@ -144,18 +145,24 @@ class ValidationReportEntry:
     report entry xlsx validation
     """
 
-    def __init__(self, name:str, title:str, reportType:str):
+    def __init__(self, name:str, title:str, reportType:str, parentName:str=None, parentTitle:str=None):
         self._name = name
         self._title = title
         self._reportType = reportType
+        self._parentName = parentName
+        self._parentTitle = parentTitle
         self._valid = True
         self._errors = []
         self._warnings = []
         self._info = []
         self._frictionless = None
         assert reportType in [ValidationReport.TYPE_RESOURCE,
+                              ValidationReport.TYPE_RESOURCE_TRANSFORM,
                               ValidationReport.TYPE_PACKAGE,
                               ValidationReport.TYPE_GENERAL]
+        if reportType == ValidationReport.TYPE_RESOURCE_TRANSFORM:
+            assert parentTitle is not None
+            assert parentName is not None
 
     def _escapeMarkdown(text:str):
         escapedText = text.replace("\\","\\\\")
@@ -252,6 +259,7 @@ class ValidationReportEntry:
         reportText = ""
         if self._frictionless and not self._frictionless.valid:
             errors = {}
+            #collect errors
             for task in self._frictionless.tasks:
                 for error in task.errors:
                     key = (task.name, error.type)
@@ -262,10 +270,11 @@ class ValidationReportEntry:
                     errors[key].append(error)
             if len(errors)>0:
                 for errorKey in errors:
-                    if self._reportType == ValidationReport.TYPE_RESOURCE:
+                    #stats for this error
+                    if self._reportType == ValidationReport.TYPE_RESOURCE or self._reportType == ValidationReport.TYPE_RESOURCE_TRANSFORM:
                         detailText = ""
                     else:
-                        detailText = " for '{}'".format(errorKey[0])
+                        detailText = "for '{}'".format(errorKey[0])
                     if markdown:
                         reportText = reportText + "  * **{}**: {}x{}<br/>".format(
                             ValidationReportEntry._escapeMarkdown(errors[errorKey][0].get_defined(name="title",default=errorKey[1])),
@@ -275,13 +284,16 @@ class ValidationReportEntry:
                                           errors[errorKey][0].get_defined(name="title",default=errorKey[1]),detailText)
                         reportText = reportText + textwrap.fill(errorText1,textWidth-6,
                                                             initial_indent="  - ",subsequent_indent="    ")+"\n"
+                    #include short description problem
                     errorText2 = errors[errorKey][0].get_defined(name="description",default="")
                     if markdown:
                         reportText = reportText + "{}\n".format(ValidationReportEntry._escapeMarkdown(errorText2))
                     else:
                         reportText = reportText + textwrap.fill(errorText2,textWidth-6,
                                                             initial_indent="    ",subsequent_indent="    ")+"\n"
+                    #list problems
                     for entryId,entry in enumerate(errors[errorKey]):
+                        #finish head of long list representation nicely
                         if entryId>=examples:
                             if markdown:
                                 reportText = reportText + "    * ...\n"
@@ -289,6 +301,7 @@ class ValidationReportEntry:
                                 reportText = reportText + "    - ...\n"
                             break
                         location = excelCoordinates(entry)
+                        print(entry)
                         fieldName = entry.get_defined(name="field_name",default=None)
                         cell = entry.get_defined(name="cell",default=None)
                         note = entry.get_defined(name="note",default=None)
@@ -348,6 +361,12 @@ class ValidationReportEntry:
                         reportText = reportText + "**Problem with sheet '{}'**\n".format(ValidationReportEntry._escapeMarkdown(self._title))
                     else:
                         reportText = reportText + "Problem with sheet '{}'\n".format(self._title)
+                elif self._reportType == ValidationReport.TYPE_RESOURCE_TRANSFORM:
+                    if markdown:
+                        reportText = reportText + "**Problem with transform of '{}'**\n".format(
+                            ValidationReportEntry._escapeMarkdown(self._parentTitle))
+                    else:
+                        reportText = reportText + "Problem with transform of '{}'\n".format(self._parentTitle)
                 else:
                     if markdown:
                         reportText = reportText + "**Problem with {}**\n".format(ValidationReportEntry._escapeMarkdown(self._title))
@@ -385,6 +404,11 @@ class ValidationReportEntry:
                     reportText = reportText + "* Sheet '{}':\n".format(ValidationReportEntry._escapeMarkdown(self._title))
                 else:
                     reportText = reportText + "- Sheet '{}':\n".format(self._title)
+            elif self._reportType == ValidationReport.TYPE_RESOURCE_TRANSFORM:
+                if markdown:
+                    reportText = reportText + "* Transform '{}':\n".format(ValidationReportEntry._escapeMarkdown(self._title))
+                else:
+                    reportText = reportText + "- Transform '{}':\n".format(self._title)
             else:
                 if markdown:
                     reportText = reportText + "* {}:\n".format(ValidationReportEntry._escapeMarkdown(self._title))

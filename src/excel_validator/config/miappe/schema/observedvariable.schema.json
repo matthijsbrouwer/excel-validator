@@ -1,0 +1,124 @@
+{
+    "fields": [
+        {
+            "name": "studyId",
+            "title": "Study unique ID",
+            "description": "Semicolon-separated list of (internal) study identifiers (cross-referencing to study worksheet) where the event was recorded.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "variableId",
+            "title": "Variable ID",
+            "description": "Code used to identify the variable in the data file. We recommend using a variable definition from the Crop Ontology where possible. Otherwise, the Crop Ontology naming convention is recommended: <trait abbreviation>_<method abbreviation>_<scale abbreviation>). A variable ID must be unique within a given investigation.",
+            "type": "string",
+            "constraints": {
+                "required": true,
+                "unique": true
+            }
+        },
+        {
+            "name": "variableName",
+            "title": "Variable name",
+            "description": "Name of the variable.",
+            "type": "string"
+        },
+        {
+            "name": "variableAccNumber",
+            "title": "Variable accession number",
+            "description": "Accession number of the variable in the Crop Ontology",
+            "type": "string"
+        },
+        {
+            "name": "traitName",
+            "title": "Trait",
+            "description": "Name of the (plant or environmental) trait under observation",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "traitEntity",
+            "title": "Trait Entity",
+            "description": "Entity (part of the plant, whole plant, group of plant e.g. canopy) on which the trait has been measured",
+            "type": "string"
+        },
+        {
+            "name": "traitEntityAccessionNumber",
+            "title": "Trait Entity Accession number",
+            "description": "Accession number of the trait entity in a suitable controlled vocabulary (Plant Ontology).",
+            "type": "string"
+        },
+        {
+            "name": "traitCharacteristic",
+            "title": "Trait Characteristic",
+            "description": "Characteristic measured. It can be a morphological characteristic (size, volume, surface), a molecular characteristic (sugar concentration), etc...",
+            "type": "string"
+        },
+        {
+            "name": "traitCharacteristicAccessionNumber",
+            "title": "Trait Characteristic Accession number",
+            "description": "Accession number of the trait characteristic in a suitable controlled vocabulary (PATO - the Phenotype And Trait Ontology).",
+            "type": "string"
+        },
+        {
+            "name": "traitAccNumber",
+            "title": "Trait accession number",
+            "description": "Accession number of the trait in a suitable controlled vocabulary (Crop Ontology, Trait Ontology).",
+            "type": "string"
+        },
+        {
+            "name": "methodName",
+            "title": "Method",
+            "description": "Name of the method of observation",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "methodAccNumber",
+            "title": "Method accession number",
+            "description": "Accession number of the method in a suitable controlled vocabulary (Crop Ontology, Trait Ontology).",
+            "type": "string"
+        },
+        {
+            "name": "methodDesc",
+            "title": "Method description",
+            "description": "Textual description of the method, which may extend a method defined in an external reference with specific parameters, e.g. growth stage, inoculation precise organ (leaf number)",
+            "type": "string"
+        },
+        {
+            "name": "methodRef",
+            "title": "Reference associated to the method",
+            "description": "URI/DOI of reference describing the method.",
+            "type": "string"
+        },
+        {
+            "name": "scaleName",
+            "title": "Scale",
+            "description": "Name of the scale associated with the variable",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "scaleAccNumber",
+            "title": "Scale accession number",
+            "description": "Accession number of the scale in a suitable controlled vocabulary (Crop Ontology).",
+            "type": "string"
+        },
+        {
+            "name": "timeScale",
+            "title": "Time scale",
+            "description": "Name of the scale or unit of time with which observations of this type were recorded in the data file (for time series studies).",
+            "type": "string"
+        }
+    ],
+    "primaryKey": "variableId",
+    "missingValues": [""]
+}
