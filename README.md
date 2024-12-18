@@ -40,6 +40,8 @@ Three different commands can be used, each with its own options:
 * **configuration**: creates an initial configuration based on the provided Excel file
 * **webservice**: starts a web service for online validation of Excel files
 
+---
+
 The package can also imported directly in your Python application:
 
 ```
