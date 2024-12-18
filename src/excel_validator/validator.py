@@ -182,7 +182,9 @@ class Validate:
                 "adjustTypeForStringColumns": True,
                 "removeEmptyRows": True,
                 "removeEmptyColumns": True
-            }, 
+            },
+            "webinterface": [],
+            "package": {},
             "sheets":[]
         }
         resourceNames = set()
@@ -196,7 +198,7 @@ class Validate:
             self._removeEmptyRowsForSheet(name)
             self._removeEmptyColumnsForSheet(name)
             #describe
-            resource = "sheet%s" % str(i).zfill(2)
+            resource = "%s_%s" % (str(i).zfill(2),re.sub("[^a-zA-Z0-9]+", "", name).lower())
             sheetConfig = {"name": name, "resource": resource, "schema": {}}
             dialect = Dialect()
             dialect.add_control(formats.ExcelControl(sheet=name, preserve_formatting=False))

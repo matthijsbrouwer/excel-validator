@@ -23,24 +23,6 @@
                     "setting": ["settings","requireSheetOrder"],
                     "default": false,
                     "label": "Require predefined sheet order"
-                },
-                {
-                    "type": "boolean",
-                    "setting": ["settings","removeEmptyRows"],
-                    "default": true,
-                    "label": "Remove empty rows"
-                },
-                {
-                    "type": "boolean",
-                    "setting": ["settings","removeEmptyColumns"],
-                    "default": true,
-                    "label": "Remove empty columns"
-                },
-                {
-                    "type": "boolean",
-                    "setting": ["settings","adjustTypeForStringColumns"],
-                    "default": true,
-                    "label": "Adjust types for string columns"
                 }
             ]
         }

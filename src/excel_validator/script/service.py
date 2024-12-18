@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(description="Excel Validator is a Python packag
 
 #subparsers
 sp = parser.add_subparsers(dest="command")
+sp.required = True
 parser_validate = sp.add_parser("validate", help="validate an Excel file")
 parser_configuration = sp.add_parser("configuration", help="create a configuration")
 parser_webservice = sp.add_parser("webservice", help="webservice for validation")
