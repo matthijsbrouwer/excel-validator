@@ -12,12 +12,34 @@ Excel Validator is a Python package designed to validate Excel files (.xlsx) bas
 
 ## Installation
 
-You can install Excel Validator via pip:
+The software requires at least Python version 3.11. It is recommended to create and activate a dedicated conda environment for the installation of this software:
+
+```
+conda create -n excel-validator python=3.11
+conda activate excel-validator
+```
+
+Now you can install Excel Validator via pip:
 
 ```
 pip install excel-validator
 ```
 
+## Usage
+
+Once installed, the software can be directly used from the command line interface. Use the `--help` option to get additional instructions on how to use it:
+
+```
+usage: excel_validator [-h] {validate,configuration,webservice} ...
+```
+
+Three different commands can be distinghuised:
+* validate:
+  validation of provided xlsx file
+* configuration:
+  create initial configuration based on provided xlsx file, which can manually be extended and improved
+* webservice:
+  start a webservice for online validation of xlsx files
 
 ---
 This software has been developed for the [AGENT](https://www.agent-project.eu/) project

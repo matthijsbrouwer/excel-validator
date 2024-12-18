@@ -30,7 +30,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.package-data]
-excel_validator = ["**/*.json"]
+excel_validator = ["**/*.json", "**/*.html", "**/*.js", "**/*.css", "**/*.ini"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}

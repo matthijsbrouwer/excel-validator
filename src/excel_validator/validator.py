@@ -34,10 +34,30 @@ class Validate:
     Parameters
     ----------------------
     filename : str
-        location of the file that should be validated
+        location of the xlsx file that should be validated
 
     configuration: str
         location of the configuration file
+
+    **kwargs
+        additional optional arguments, valid keyword arguments are:
+
+        cli: bool
+            enables progressbar in output for cli usage; by default disabled
+        statusRegister: dict
+            provide a shared dictionary to update validation status of processes
+        statusIdentifier: str
+            used as key in the statusRegister to update validation status current process
+            if missing, validation will terminate
+        create: str
+            create a configuration for the xlsx file, and store it on the provided location
+        webinterfaceData: dict
+            used to provide webinterface data to override default configuration settings
+        name: str
+            name used in validation; by default basename of xlsx file will be used
+        updateFile: bool
+            enables updating of xlsx file when automatically solving problems; by default disabled
+        
         
     """
 
@@ -61,7 +81,7 @@ class Validate:
     WARNING_EMPTY_PACKAGE      = "Empty Package"
     
 
-    def __init__(self, filename: str, configuration: str, **args):
+    def __init__(self, filename: str, configuration: str, **kwargs):
         #logging
         self._logger = logging.getLogger(__name__)
 
@@ -77,12 +97,12 @@ class Validate:
                 "File '%s' doesn't exist or isn't readable" % filename
 
         #include progress bar for cli call, or status update
-        self._cli = bool(args.get("cli", False))
-        self._statusRegister = args.get("statusRegister",None)
-        self._statusIdentifier = args.get("statusIdentifier",None)
+        self._cli = bool(kwargs.get("cli", False))
+        self._statusRegister = kwargs.get("statusRegister",None)
+        self._statusIdentifier = kwargs.get("statusIdentifier",None)
         
-        if args.get("create", False):
-            config_filename = str(args.get("create"))
+        if kwargs.get("create", False):
+            config_filename = str(kwargs.get("create"))
             config_location = os.path.abspath(config_filename)
             if os.path.exists(config_filename):
                 raise Exception("couldn't create configuration, %s already exists" % os.path.basename(config_filename))
@@ -101,7 +121,7 @@ class Validate:
                     "Configuration file '{}' doesn't exist or isn't readable".format(configuration)
             self._parseConfiguration(configurationFilename)
             #process webinterface settings
-            self._webinterfaceData = args.get("webinterfaceData",{})
+            self._webinterfaceData = kwargs.get("webinterfaceData",{})
             for entry in self._config.get("webinterface",[]):
                 for option in entry.get("options",[]):
                     key = "option%s" % "_".join(option["setting"])
@@ -124,13 +144,13 @@ class Validate:
                                 raise Exception("could not load plugin %s: %s" % (os.path.basename(file),ex))
             #initialise for validation
             self._package = Package()
-            self._name = args.get("name", os.path.basename(filename))
+            self._name = kwargs.get("name", os.path.basename(filename))
             self._report = ValidationReport(self._logger)
             self._expectedSheets = set()
             #start validation
             if not self._config is None:
                 self._filename = os.path.basename(filename)
-                if not args.get("updateFile", False):
+                if not kwargs.get("updateFile", False):
                     with tempfile.TemporaryDirectory() as tmp_dir:
                         output_filename = os.path.join(tmp_dir,self._filename)
                         copyfile(filename,output_filename)

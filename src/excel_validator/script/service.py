@@ -173,9 +173,8 @@ def _validate(xlsx_filename):
             with open(mdreport_filename, "w") as f:
                 f.write(validation.createMarkdownReport(mdreport_filename))
         return validation
-    # to be enabled
-    # except Exception as ex:
-    #     parser.error(ex)
+    except Exception as ex:
+        parser.error(ex)
     finally:
         pass
     
