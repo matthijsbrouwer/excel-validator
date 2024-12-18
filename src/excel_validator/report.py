@@ -2,6 +2,7 @@
 """Module providing report classes."""
 
 import logging
+import json
 import textwrap
 from frictionless import Report
 from .functions import excelCoordinates
@@ -83,37 +84,83 @@ class ValidationReport:
         """
         Set frictionless data
         """
-        return []
+        reportObjects = []
+        #add error text except package
+        for reportName in self.reports:
+            if not self._reports[reportName].reportType == ValidationReport.TYPE_PACKAGE:
+                reportObjects.append(self._reports[reportName].createReportObject())
+        #add error text package
+        for reportName in self.reports:
+            if self._reports[reportName].reportType == ValidationReport.TYPE_PACKAGE:
+                reportObjects.append(self._reports[reportName].createReportObject())
+        #return
+        return reportObjects
         
     def createTextReport(self, textWidth=100, examples=3, markdown=False, warnings=True):
         """
         Create text version report
         """
         #create error text
-        reportErrorText = ""
+        reportErrorTexts = {}
+        reportErrorOrder = []
         errorTypes = set()
-        #add error text except package
-        for reportName in self.reports:
-            if not self._reports[reportName].reportType == ValidationReport.TYPE_PACKAGE:
-                reportErrorText = reportErrorText + self._reports[reportName].createErrorTextReport(textWidth,examples,markdown,errorTypes)
-                errorTypes.update(self._reports[reportName].getErrorTypes())
-        #add error text package
-        for reportName in self.reports:
-            if self._reports[reportName].reportType == ValidationReport.TYPE_PACKAGE:
-                reportErrorText = reportErrorText + self._reports[reportName].createErrorTextReport(textWidth,examples,markdown,errorTypes)
-        #create warning text
-        reportWarningText = ""
-        if warnings:
+        #add error text
+        typeOrder = [ValidationReport.TYPE_GENERAL,ValidationReport.TYPE_RESOURCE,
+                     ValidationReport.TYPE_RESOURCE_TRANSFORM,ValidationReport.TYPE_PACKAGE]
+        for reportType in typeOrder:
             for reportName in self.reports:
-                reportWarningText = reportWarningText + self._reports[reportName].createWarningTextReport(textWidth,markdown)
+                if self._reports[reportName].reportType == reportType:
+                    reportErrorTitle,reportErrorText = self._reports[reportName].createErrorTextReport(
+                        textWidth,examples,markdown,errorTypes)
+                    reportNameKey = (reportType,self._reports[reportName]._name)
+                    if reportType == ValidationReport.TYPE_RESOURCE_TRANSFORM:
+                        reportNameKey = (ValidationReport.TYPE_RESOURCE,self._reports[reportName]._parentName)
+                    if not reportNameKey in reportErrorTexts:
+                        reportErrorOrder.append(reportNameKey)
+                        reportErrorTexts[reportNameKey] = [None,""]
+                    if not (reportErrorTitle is None or reportErrorText is None):
+                        if reportErrorTexts[reportNameKey][0] is None:
+                            reportErrorTexts[reportNameKey][0] = reportErrorTitle
+                        reportErrorTexts[reportNameKey][1] = reportErrorTexts[reportNameKey][1] + reportErrorText
+                    errorTypes.update(self._reports[reportName].getErrorTypes())
+        #create warning text
+        reportWarningTexts = {}
+        reportWarningOrder = []
+        if warnings:
+            for reportType in typeOrder:
+                for reportName in self.reports:
+                    if self._reports[reportName].reportType == reportType:
+                        reportWarningTitle,reportWarningText = self._reports[reportName].createWarningTextReport(
+                            textWidth,markdown)
+                        reportNameKey = (reportType,self._reports[reportName]._name)
+                        if reportType == ValidationReport.TYPE_RESOURCE_TRANSFORM:
+                            reportNameKey = (ValidationReport.TYPE_RESOURCE,self._reports[reportName]._parentName)
+                        if not reportNameKey in reportWarningTexts:
+                            reportWarningOrder.append(reportNameKey)
+                            reportWarningTexts[reportNameKey] = [None,""]
+                        if not (reportWarningTitle is None or reportWarningText is None):
+                            if reportWarningTexts[reportNameKey][0] is None:
+                                reportWarningTexts[reportNameKey][0] = reportWarningTitle
+                            reportWarningTexts[reportNameKey][1] = reportWarningTexts[reportNameKey][1] + reportWarningText
         #create text
-        reportText = reportErrorText
-        if len(reportWarningText)>0:
-            if markdown:
-                reportText = reportText + "**Warnings**:\n"
-            else:
-                reportText = reportText + "Warnings:\n"
-            reportText = reportText + reportWarningText
+        reportText = ""
+        for item in reportErrorOrder:
+            if reportErrorTexts[item][0] is None:
+                continue
+            reportText = reportText + reportErrorTexts[item][0]
+            reportText = reportText + reportErrorTexts[item][1]
+        hasWarnings = False
+        for item in reportWarningOrder:
+            if reportWarningTexts[item][0] is None:
+                continue
+            if not hasWarnings:
+                hasWarnings = True
+                if markdown:
+                    reportText = reportText + "**Warnings**:\n"
+                else:
+                    reportText = reportText + "Warnings:\n"
+            reportText = reportText + reportWarningTexts[item][0]
+            reportText = reportText + reportWarningTexts[item][1]
         return reportText
 
     @property
@@ -251,6 +298,26 @@ class ValidationReportEntry:
                     errorTypes.add((task.name, error.type))
         return errorTypes
 
+    def createReportObject(self):
+        """
+        Create report object
+        """
+        reportObject = {
+            "name": self._name,
+            "title": self._title,
+            "reportType": self._reportType,
+            "valid": self._valid,
+            "errors": self._errors,
+            "warnings": self._warnings,
+            "info": self._info,
+            "frictionless": None
+        }
+        if self._frictionless:
+            reportObject["frictionless"] = json.loads(self._frictionless.to_json())
+        if not (self._parentName is None and self._parentTitle is None):
+            reportObject["parent"] = {"name": self._parentName, "title": self._parentTitle}
+        return reportObject
+
     def createFrictionlessTextReport(self, textWidth=100, examples=3, markdown=False, ignoreErrortypes=None):
         """
         Create text version report frictionless
@@ -276,46 +343,48 @@ class ValidationReportEntry:
                     else:
                         detailText = "for '{}'".format(errorKey[0])
                     if markdown:
-                        reportText = reportText + "  * **{}**: {}x{}<br/>".format(
+                        reportText = reportText + "* **{}**: {}x{}<br/>".format(
                             ValidationReportEntry._escapeMarkdown(errors[errorKey][0].get_defined(name="title",default=errorKey[1])),
                             len(errors[errorKey]),ValidationReportEntry._escapeMarkdown(detailText))
                     else:
                         errorText1 = "{}x '{}' {}".format(len(errors[errorKey]),
                                           errors[errorKey][0].get_defined(name="title",default=errorKey[1]),detailText)
-                        reportText = reportText + textwrap.fill(errorText1,textWidth-6,
-                                                            initial_indent="  - ",subsequent_indent="    ")+"\n"
+                        reportText = reportText + textwrap.fill(errorText1,textWidth-4,
+                                                            initial_indent="- ",subsequent_indent="  ")+"\n"
                     #include short description problem
                     errorText2 = errors[errorKey][0].get_defined(name="description",default="")
                     if markdown:
                         reportText = reportText + "{}\n".format(ValidationReportEntry._escapeMarkdown(errorText2))
                     else:
-                        reportText = reportText + textwrap.fill(errorText2,textWidth-6,
-                                                            initial_indent="    ",subsequent_indent="    ")+"\n"
+                        reportText = reportText + textwrap.fill(errorText2,textWidth-4,
+                                                            initial_indent="  ",subsequent_indent="  ")+"\n"
                     #list problems
                     for entryId,entry in enumerate(errors[errorKey]):
                         #finish head of long list representation nicely
                         if entryId>=examples:
                             if markdown:
-                                reportText = reportText + "    * ...\n"
+                                reportText = reportText + "  * ...\n"
                             else:
-                                reportText = reportText + "    - ...\n"
+                                reportText = reportText + "  - ...\n"
                             break
                         location = excelCoordinates(entry)
-                        print(entry)
                         fieldName = entry.get_defined(name="field_name",default=None)
                         cell = entry.get_defined(name="cell",default=None)
                         note = entry.get_defined(name="note",default=None)
                         message = entry.get_defined(name="message",default=None)
-                        if location:
+                        if location and not self._reportType == ValidationReport.TYPE_RESOURCE_TRANSFORM:
                             if markdown:
                                 errorText = "**{}**".format(ValidationReportEntry._escapeMarkdown(location))
                             else:
                                 errorText = "{}".format(location)
                             if fieldName:
                                 if cell:
-                                    errorText = "{} ({} '{}'): ".format(errorText,
+                                    if markdown:
+                                        errorText = "{} ({} '{}'): ".format(errorText,
                                                                         ValidationReportEntry._escapeMarkdown(fieldName),
                                                                         ValidationReportEntry._escapeMarkdown(cell))
+                                    else:
+                                        errorText = "{} ({} '{}'): ".format(errorText,fieldName,cell)
                                 else:
                                     if markdown:
                                         errorText = "{} ({}): ".format(errorText,ValidationReportEntry._escapeMarkdown(fieldName))
@@ -323,6 +392,18 @@ class ValidationReportEntry:
                                         errorText = "{} ({}): ".format(errorText,fieldName)
                             else:
                                 errorText = "{}: ".format(errorText)
+                        elif not(fieldName is None):
+                            if not cell is None:
+                                if markdown:
+                                    errorText = "{} '{}': ".format(ValidationReportEntry._escapeMarkdown(fieldName),
+                                                         ValidationReportEntry._escapeMarkdown(cell))
+                                else:
+                                    errorText = "{} '{}': ".format(fieldName,cell)
+                            else:
+                                if markdown:
+                                    errorText = "{}: ".format(ValidationReportEntry._escapeMarkdown(fieldName))
+                                else:
+                                    errorText = "{}: ".format(fieldName)
                         else:
                             errorText = ""
                         if note:
@@ -336,10 +417,10 @@ class ValidationReportEntry:
                             else:
                                 errorText = errorText + "{}".format(message)
                         if markdown:
-                            reportText = reportText + "    * {}\n".format(errorText)
+                            reportText = reportText + "  * {}\n".format(errorText)
                         else:
-                            reportText = reportText + textwrap.fill(errorText,textWidth-8,
-                                                            initial_indent="    - ",subsequent_indent="      ")+"\n"
+                            reportText = reportText + textwrap.fill(errorText,textWidth-6,
+                                                            initial_indent="  - ",subsequent_indent="    ")+"\n"
 
         return reportText
 
@@ -348,7 +429,8 @@ class ValidationReportEntry:
         Create error text report
         """
         #create text
-        reportText = ""
+        reportTitle = None
+        reportText = None
         if not self._valid:
             errorTypes = self.getErrorTypes()
             if ignoreErrortypes:
@@ -356,22 +438,25 @@ class ValidationReportEntry:
             else:
                 newErrorTypes = errorTypes
             if len(self._errors)>0 or (self._frictionless and (not self._frictionless.valid) and len(newErrorTypes)>0):
+                #title
                 if self._reportType == ValidationReport.TYPE_RESOURCE:
                     if markdown:
-                        reportText = reportText + "**Problem with sheet '{}'**\n".format(ValidationReportEntry._escapeMarkdown(self._title))
+                        reportTitle = "**Problem with sheet '{}'**\n".format(ValidationReportEntry._escapeMarkdown(self._title))
                     else:
-                        reportText = reportText + "Problem with sheet '{}'\n".format(self._title)
+                        reportTitle = "Problem with sheet '{}'\n".format(self._title)
                 elif self._reportType == ValidationReport.TYPE_RESOURCE_TRANSFORM:
                     if markdown:
-                        reportText = reportText + "**Problem with transform of '{}'**\n".format(
+                        reportTitle = "**Problem with sheet '{}'**\n".format(
                             ValidationReportEntry._escapeMarkdown(self._parentTitle))
                     else:
-                        reportText = reportText + "Problem with transform of '{}'\n".format(self._parentTitle)
+                        reportTitle = "Problem with sheet '{}'\n".format(self._parentTitle)
                 else:
                     if markdown:
-                        reportText = reportText + "**Problem with {}**\n".format(ValidationReportEntry._escapeMarkdown(self._title))
+                        reportTitle = "**Problem with {}**\n".format(ValidationReportEntry._escapeMarkdown(self._title))
                     else:
-                        reportText = reportText + "Problem with {}\n".format(self._title)
+                        reportTitle = "Problem with {}\n".format(self._title)
+                #text
+                reportText = ""
                 for error in self._errors:
                     if markdown:
                         reportText = reportText + textwrap.fill("**{}**: {}".format(
@@ -383,37 +468,36 @@ class ValidationReportEntry:
                         reportText = reportText + textwrap.fill("{}: {}".format(error[0],error[1]),textWidth-4,
                             initial_indent="- ",subsequent_indent="  ") + "\n"
                 if self._frictionless and (not self._frictionless.valid) and len(newErrorTypes)>0:
-                    if markdown:
-                        reportText = reportText + "* Frictionless validation failed\n"
-                    else:
-                        reportText = reportText + "- Frictionless validation failed\n"
                     reportText = reportText + self.createFrictionlessTextReport(textWidth,examples,markdown,ignoreErrortypes)
                 if markdown:
                     reportText = reportText + "\n"
-        return reportText
+        return reportTitle, reportText
 
     def createWarningTextReport(self, textWidth=100, markdown=False):
         """
         Create warning text report
         """
         #create text
+        reportTitle = ""
         reportText = ""
         if len(self._warnings)>0:
+            #title
             if self._reportType == ValidationReport.TYPE_RESOURCE:
                 if markdown:
-                    reportText = reportText + "* Sheet '{}':\n".format(ValidationReportEntry._escapeMarkdown(self._title))
+                    reportTitle = "* Sheet '{}':\n".format(ValidationReportEntry._escapeMarkdown(self._title))
                 else:
-                    reportText = reportText + "- Sheet '{}':\n".format(self._title)
+                    reportTitle = "- Sheet '{}':\n".format(self._title)
             elif self._reportType == ValidationReport.TYPE_RESOURCE_TRANSFORM:
                 if markdown:
-                    reportText = reportText + "* Transform '{}':\n".format(ValidationReportEntry._escapeMarkdown(self._title))
+                    reportTitle = "* Sheet '{}':\n".format(ValidationReportEntry._escapeMarkdown(self._parentTitle))
                 else:
-                    reportText = reportText + "- Transform '{}':\n".format(self._title)
+                    reportTitle = "- Sheet '{}':\n".format(self._parentTitle)
             else:
                 if markdown:
-                    reportText = reportText + "* {}:\n".format(ValidationReportEntry._escapeMarkdown(self._title))
+                    reportTitle = "* {}:\n".format(ValidationReportEntry._escapeMarkdown(self._title))
                 else:
-                    reportText = reportText + "- {}:\n".format(self._title)
+                    reportTitle = "- {}:\n".format(self._title)
+            #text
             for warning in self._warnings:
                 if markdown:
                     reportText = reportText + textwrap.fill("**{}**: {}".format(warning[0],warning[1]),textWidth-4,
@@ -421,5 +505,5 @@ class ValidationReportEntry:
                 else:
                     reportText = reportText + textwrap.fill("{}: {}".format(warning[0],warning[1]),textWidth-4,
                         initial_indent="  - ",subsequent_indent="    ") + "\n"
-        return reportText
+        return reportTitle, reportText
         

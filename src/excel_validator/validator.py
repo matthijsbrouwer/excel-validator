@@ -76,8 +76,10 @@ class Validate:
         assert os.path.isfile(filename) and os.access(filename, os.R_OK), \
                 "File '%s' doesn't exist or isn't readable" % filename
 
-        #include progress bar for cli call
+        #include progress bar for cli call, or status update
         self._cli = bool(args.get("cli", False))
+        self._statusRegister = args.get("statusRegister",None)
+        self._statusIdentifier = args.get("statusIdentifier",None)
         
         if args.get("create", False):
             config_filename = str(args.get("create"))
@@ -92,13 +94,21 @@ class Validate:
                     self._basepath = tmp_dir
                     self._createConfiguration(config_location)
                 self._basepath = None
-
         else:        
             #check configuration
             configurationFilename = os.path.abspath(configuration)
             assert os.path.isfile(configurationFilename) and os.access(configurationFilename, os.R_OK), \
                     "Configuration file '{}' doesn't exist or isn't readable".format(configuration)
             self._parseConfiguration(configurationFilename)
+            #process webinterface settings
+            self._webinterfaceData = args.get("webinterfaceData",{})
+            for entry in self._config.get("webinterface",[]):
+                for option in entry.get("options",[]):
+                    key = "option%s" % "_".join(option["setting"])
+                    if option["type"] == "boolean":
+                        if key in self._webinterfaceData:
+                            value = int(self._webinterfaceData[key])>0
+                            Validate._updateNestedDictionary(self._config, option["setting"], value)
             #load plugins
             if not self._config is None and self._pluginPath:
                 if(os.path.isdir(self._pluginPath)):
@@ -130,6 +140,23 @@ class Validate:
                 else:
                     self._basepath = os.path.dirname(filename)
                     self._validate()
+
+    def getConfigFilename(config=None):
+        internal_config_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)),"config")
+        #get configuration for validation
+        if not (config is None or config == False):
+            config_filename = os.path.abspath(config)
+            if not os.path.exists(config_filename):
+                config_filename = os.path.join(internal_config_directory, config)
+            if not os.path.exists(config_filename):
+                parser.error("Can't find configuration %s" % config)
+            elif os.path.isdir(config_filename):
+                config_filename = os.path.join(config_filename, "config.json")
+                if not os.path.exists(config_filename):
+                    parser.error("Can't find configuration %s" % config)
+        else:
+            config_filename = os.path.join(internal_config_directory, "default/config.json")
+        return config_filename
                
     def _createConfiguration(self, configurationLocation: str):
         #initialise
@@ -425,7 +452,9 @@ class Validate:
                     self._report.addReportError(reportId, Validate.ERROR_MISSING_COLUMNS, "'{}'".format("', '".join(missingNames)))
                     adjusted_resource = True
                 if len(unrecognizedNames)>0:
-                    self._report.addReportError(reportId, Validate.ERROR_UNRECOGNIZED_COLUMNS, "'{}'".format("', '".join(unrecognizedNames)))
+                    unrecognizedStringNames = set([(x if not x is None else "") for x in unrecognizedNames])
+                    self._report.addReportError(reportId, Validate.ERROR_UNRECOGNIZED_COLUMNS, 
+                                                "'{}'".format("', '".join(unrecognizedStringNames)))
                     adjusted_resource = True
                 if headerCase:
                     recognizedResourceNames = [item for item in resourceColumnNames if item in requiredNames]
@@ -451,8 +480,10 @@ class Validate:
                                                    if resource.schema.has_field(fieldName)]
                     resource.schema.foreign_keys = [entry for entry in resource.schema.foreign_keys
                                                    if any([resource.schema.has_field(fieldName) for fieldName in entry["fields"]])]
-            except Exception as e:
-                self._report.addReportError(reportId, Validate.ERROR_GENERAL, "problem checking missing columns: {}".format(str(e)))
+            # except Exception as e:
+            #     self._report.addReportError(reportId, Validate.ERROR_GENERAL, "problem checking missing columns: {}".format(str(e)))
+            finally:
+                pass
         return adjusted_resource
 
     def _removeEmptyRowsForSheet(self, sheetName:str, resource:Resource = None, reportId:str = None):
@@ -610,11 +641,29 @@ class Validate:
     def _validate(self):
         self._logger.debug("start validation")
 
+        #set status
+        if (self._statusRegister and self._statusIdentifier):
+            if self._statusIdentifier in self._statusRegister:
+                status = self._statusRegister[self._statusIdentifier]
+                status.update({"started": int(time.time())})
+                self._statusRegister.update({self._statusIdentifier: status})
+            else:
+                return
+
         #get available sheets
         self._report.addReport("general","General",False,ValidationReport.TYPE_GENERAL)
+        #set status
+        if (self._statusRegister and self._statusIdentifier):
+            if self._statusIdentifier in self._statusRegister:
+                status = self._statusRegister[self._statusIdentifier]
+                status.update({"status": "initialise validation"})
+                self._statusRegister.update({self._statusIdentifier: status})               
+            else:
+                return
         progression_bar = tqdm(total=2, disable=(not self._cli), leave=False)
         progression_bar_size = 25
         progression_bar.set_description(str("Initialise validation").ljust(progression_bar_size))
+        #ry to get sheetnames
         try:
             resourceFilename = os.path.join(self._basepath, self._filename)
             self._wb = load_workbook(os.path.join(resourceFilename))
@@ -623,6 +672,11 @@ class Validate:
             self._report.addReportError("general", Validate.ERROR_NO_SHEET_NAMES,
                                         "problem retrieving sheetnames from '{}': {}".format(
                                             os.path.basename(self._filename),str(e)))
+            if (self._statusRegister and self._statusIdentifier):
+                if self._statusIdentifier in self._statusRegister:
+                    status = self._statusRegister[self._statusIdentifier]
+                    status.update({"ended": int(time.time())})
+                    self._statusRegister.update({self._statusIdentifier: status})
             return
 
         #configuration
@@ -631,6 +685,14 @@ class Validate:
 
         #compute the expected sheets, check if everything is included and compute the order for validation
         self._computeExpectedSheets()
+        #update status
+        if (self._statusRegister and self._statusIdentifier):
+            if self._statusIdentifier in self._statusRegister:
+                status = self._statusRegister[self._statusIdentifier]
+                status.update({"step": 0, "total": len(self._expectedSheets)+2})
+                self._statusRegister.update({self._statusIdentifier: status})
+            else:
+                return
         progression_bar.reset(total=len(self._expectedSheets)+2)
         
         missingSheets = [sheetName for sheetName in self._expectedSheets if not sheetName in self._availableSheets]
@@ -649,15 +711,31 @@ class Validate:
                 self._report.addReportError("general", Validate.ERROR_ORDER_SHEETS, "'{}'".format("', '".join(availableOrder)))
         #get validation order (check dependencies)
         validationOrder = self._computeValidationOrder()
+        #update status
+        if (self._statusRegister and self._statusIdentifier):
+            if self._statusIdentifier in self._statusRegister:
+                status = self._statusRegister[self._statusIdentifier]
+                status.update({"step": 0, "total": len(validationOrder)+2})
+                self._statusRegister.update({self._statusIdentifier: status})
+            else:
+                return
         progression_bar.reset(total=len(validationOrder)+2)
+        progression_bar.update(1)
         #validate resources
         errorTypes = set()
-        progression_bar.update(1)
         for entry in validationOrder:
             n = progression_bar_size - 13
             sheet = "[%s...]"%entry["name"][:(n-3)] if len(entry["name"])>n else "[%s]"%entry["name"]
+            #set status
+            if (self._statusRegister and self._statusIdentifier):
+                if self._statusIdentifier in self._statusRegister:
+                    status = self._statusRegister[self._statusIdentifier]
+                    status.update({"status": "Validating [%s]" % entry["name"]})
+                    self._statusRegister.update({self._statusIdentifier: status})
+                else:
+                    return
             progression_bar.set_description("Validating %s" % sheet.ljust(n+2))
-            resource = self._createResource(entry)
+            resource = self._createResource(entry) 
             if "schema" in entry:
                 resource_validation = self._validateResource(resource,entry)
                 if resource_validation:
@@ -666,19 +744,46 @@ class Validate:
             self._package.add_resource(resource)   
             if "transforms" in entry:
                 for j in range(len(entry["transforms"])):
-                    transformResource = self._createTransform(entry["transforms"][j],resource,entry["name"])
-                    if "schema" in entry["transforms"][j]:
-                        resource_validation = self._validateResource(transformResource,entry["transforms"][j])
-                        if resource_validation:
-                            errorTypes.update([item.type for item in resource_validation.tasks[0].errors])
-                    #try to add resource
-                    self._package.add_resource(transformResource)   
-            progression_bar.update(1)            
+                    try:
+                        transformResource = self._createTransform(entry["transforms"][j],resource,entry["name"])
+                        if "schema" in entry["transforms"][j]:
+                            resource_validation = self._validateResource(transformResource,entry["transforms"][j])
+                            if resource_validation:
+                                errorTypes.update([item.type for item in resource_validation.tasks[0].errors])
+                        #try to add resource
+                        self._package.add_resource(transformResource)
+                    except Exception as e:
+                        pass
+            #set status
+            if (self._statusRegister and self._statusIdentifier):
+                if self._statusIdentifier in self._statusRegister:
+                    status = self._statusRegister[self._statusIdentifier]
+                    status.update({"step": status["step"]+1})
+                    self._statusRegister.update({self._statusIdentifier: status})
+                else:
+                    return
+            progression_bar.update(1)  
+        #set status
+        if (self._statusRegister and self._statusIdentifier):
+            if self._statusIdentifier in self._statusRegister:
+                status = self._statusRegister[self._statusIdentifier]
+                status.update({"step": status["step"]+1, "status": "Validating package"})
+                self._statusRegister.update({self._statusIdentifier: status})
+            else:
+                return
         progression_bar.set_description("Validating package")
         progression_bar.update(1)
         #validate package
         packageEntry = self._config.get("package",{})
         self._validatePackage(packageEntry, skip_errors = list(errorTypes))
+        #set status
+        if (self._statusRegister and self._statusIdentifier):
+            if self._statusIdentifier in self._statusRegister:
+                status = self._statusRegister[self._statusIdentifier]
+                status.update({"step": status["step"]+1, "ended": int(time.time()), "status": "Validating finished"})
+                self._statusRegister.update({self._statusIdentifier: status})
+            else:
+                return
         progression_bar.close()
 
     def _createResource(self, entry):
@@ -712,7 +817,8 @@ class Validate:
 
     def _createTransform(self, entry, resource, parentName):
         reportId = "resource:{}".format(entry["resource"])
-        self._report.addReport(reportId, entry["name"], True, ValidationReport.TYPE_RESOURCE_TRANSFORM, resource.name, parentName)
+        parentId = "resource:{}".format(resource.name)
+        self._report.addReport(reportId, entry["name"], True, ValidationReport.TYPE_RESOURCE_TRANSFORM, parentId, parentName)
         self._report.addReportDebug(reportId,"define transformation from sheet '{}'".format(entry["name"]))
         #create resource
         pipeline = Pipeline.from_descriptor(entry["pipeline"]["data"])
@@ -824,10 +930,7 @@ class Validate:
 
         #check types, empty rows and columns
         if resource.path:
-            pick_errors = []
-            pick_errors += ["type-error"] if adjustTypeForStringColumns else []
-            pick_errors += ["blank-row"] if removeEmptyRows else []
-            pick_errors += ["extra-label"] if removeEmptyColumns else []
+            pick_errors = ["type-error","blank-row","extra-label"]
             if len(pick_errors)>0:
                 resource_validation = resource.validate(checklist=Checklist(pick_errors=pick_errors, skip_errors=skip_errors))
                 if not resource_validation.valid:
@@ -881,7 +984,7 @@ class Validate:
         else:
             return self._package.to_json()
 
-    def createReport(self):
+    def createReport(self, filename:str=None):
         """
         Create JSON object with report
         """
@@ -889,6 +992,9 @@ class Validate:
                         "version": __version__, 
                         "valid": self.valid, 
                         "reports": self._report.createReportObjects()}
+        if not filename is None:
+            with open(filename, "w") as f:
+                json.dump(reportObject, f)
         return reportObject
 
     def createTextReport(self, filename:str=None, textWidth=100, examples=3, warnings=True):
@@ -900,6 +1006,9 @@ class Validate:
         reportText = "=== {} '{}' (version {}) ===\n".format(
             ("VALID" if self._report.valid else "INVALID"),name,__version__)
         reportText = reportText + self._report.createTextReport(textWidth, examples, False, warnings)
+        if not filename is None:
+            with open(filename, "w") as f:
+                f.write(reportText)
         return reportText
 
     def createMarkdownReport(self, filename:str=None, textWidth=100, examples=3, warnings=True):
@@ -911,6 +1020,9 @@ class Validate:
         reportText = "# {}: {}\n\nVersion {}\n\n".format(
             ("VALID" if self._report.valid else "INVALID"),name,__version__)
         reportText = reportText + self._report.createTextReport(textWidth, examples, True, warnings)
+        if not filename is None:
+            with open(filename, "w") as f:
+                f.write(reportText)
         return reportText
 
     @property
@@ -929,3 +1041,10 @@ class Validate:
 
     def __getitem__(self, key):
         return self._report[key]
+
+
+    def _updateNestedDictionary(data, locationPath, value):
+        if len(locationPath)==1:
+            data[locationPath[0]] = value
+        elif len(locationPath)>1:
+             Validate._updateNestedDictionary(data[locationPath[0]], locationPath[1:], value)

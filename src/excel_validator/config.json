@@ -47,6 +47,31 @@
             },
             "additionalProperties": false
         },
+        "webinterface": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "description": {"type": ["string","null"]},
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {"type": "string", "enum": ["boolean"]},
+                                "setting": {"type": "array", "items": {"type": "string"}},
+                                "default": {"type": ["number","string","boolean","object","array", "null"]},
+                                "label": {"type": "string"}
+                            },
+                            "required": ["type","setting","default","label"],
+                            "additionalProperties": false
+                        }
+                    }
+                },
+                "required": ["options"],
+                "additionalProperties": false
+            }
+        },
         "package": {
             "type": "object",
             "description": "Package settings",

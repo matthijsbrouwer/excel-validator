@@ -142,20 +142,7 @@ def service_validate():
                     console.print(md)
     
 def _validate(xlsx_filename):
-    internal_config_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../config")
-    #get configuration for validation
-    if args.config:
-        config_filename = os.path.abspath(args.config)
-        if not os.path.exists(config_filename):
-            config_filename = os.path.join(internal_config_directory, args.config)
-        if not os.path.exists(config_filename):
-            parser.error("Can't find configuration %s" % args.config)
-        elif os.path.isdir(config_filename):
-            config_filename = os.path.join(config_filename, "config.json")
-            if not os.path.exists(config_filename):
-                parser.error("Can't find configuration %s" % args.config)
-    else:
-        config_filename = os.path.join(internal_config_directory, "default/config.json")
+    config_filename = validator.Validate.getConfigFilename(args.config)
     try:
         validation = validator.Validate(xlsx_filename, config_filename, updateFile=args.update, cli=True)
         if args.createPackageFile is None or isinstance(args.createPackageFile,str):

@@ -6,23 +6,79 @@
         <div class="error text-danger"></div>
     </div>
     <div class="mb-3 status">
-        <table class="table table-bordered w-auto">
-            <tbody>
-                <tr>
-                    <th scope="row">Filename</th>
-                    <td class="uploadFilename">{{ filename }}</td>
-                </tr>
-                <tr>
-                    <th scope="row">Filesize</th>
-                    <td class="uploadFilesize">{{ filesize }}</td>
-                </tr>
-                <tr>
-                    <th scope="row">Uploaded</th>
-                    <td class="uploadFiletime">{{ filetime }}</td>
-                </tr>
-            </tbody>
-        </table>
-        <input class="delete" type="button" value="delete">
+        <div class="container">
+            <div class="row align-items-start">
+                <div class="col">
+                    <table class="table table-bordered w-auto">
+                        <tbody>
+                            <tr>
+                                <th scope="row">Filename</th>
+                                <td class="uploadFilename">{{ filename|safe }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Filesize</th>
+                                <td class="uploadFilesize">{{ filesize|safe }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Uploaded</th>
+                                <td class="uploadFiletime">{{ filetime|safe }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col">
+                    <div class="validationSettings">
+                    {% for item in webinterface %}
+                        <table class="table table-bordered w-auto">
+                            <tbody>
+                            {% for option in item.options %}
+                                {% if option.type == "boolean" %}
+                                <tr class="value" data-id="option{{'_'.join(option.setting)|safe}}">
+                                    <th class="text-center" scope="row"></th>
+                                    <td class="">{{ option.label|safe }}</td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </table>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <i class="bi bi-backpack"></i>
+        <div class="webinterface">
+        {% for item in webinterface %}
+            <div class="webinterfaceBlock mb-3">
+                {% if item.description %}
+                <div class="form-label">{{ item.description|safe }}</div>
+                {% endif %}
+                {% for option in item.options %}
+                    {% if option.type == "boolean" %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="option{{'_'.join(option.setting)|safe}}"{% if option.default %} checked{% endif %}>
+                        <label class="form-check-label" for="option{{'_'.join(option.setting)|safe}}">{{ option.label|safe }}</label>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endfor %}
+        </div>
+        <div class="error text-danger mb-3"></div>
+        <div class="validation mb-3">
+            <div class="validationProgress"></div>
+            <div class="validationProgressBar progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+            </div>
+        </div>
+        <div class="control mb-3">
+            <input class="validate btn btn-primary" type="button" value="validate file">
+            <input class="abort btn btn-light btn-outline-dark" type="button" value="abort validation">
+            <input class="reset btn btn-light btn-outline-secondary" type="button" value="reset validation">
+            <input class="delete btn btn-light btn-outline-danger" type="button" value="delete file">
+            {% if download %}<input class="download btn btn-primary" type="button" value="download">{% endif %}
+        </div>
+        <div class="report mb-3"></div>
+        <br />
     </div>
 </main>
 {% include "block_footer.html" %}
