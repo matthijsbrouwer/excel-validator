@@ -1,5 +1,1 @@
-{
-    "checks": [
-        {"type": "table-dimensions", "min-rows": 10, "name": "study"}
-    ]
-}
+{}

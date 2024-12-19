@@ -28,7 +28,7 @@
         }
     ],
     "package": {
-        
+        "checklist": {"file": "package.checklist.json"}
     },
     "sheets": [
         {
@@ -41,7 +41,8 @@
             "resource": "investigation",
             "schema": {
                 "file": "investigation.schema.json"
-            }
+            },
+            "checklist": {"file": "investigation.checklist.json"}
         },
         {
             "name": "Study",
@@ -49,7 +50,8 @@
             "resource": "study",
             "schema": {
                 "file": "study.schema.json"
-            }
+            },
+            "checklist": {"file": "study.checklist.json"}
         },
         {
             "name": "Person",
@@ -58,6 +60,7 @@
             "schema": {
                 "file": "person.schema.json"
             },
+            "checklist": {"file": "person.checklist.json"},
             "transforms": [
                 {
                     "resource": "person2study",
@@ -96,6 +99,7 @@
             "schema": {
                 "file": "biologicalmaterial.schema.json"
             },
+            "checklist": {"file": "biologicalmaterial.checklist.json"},
             "transforms": [
                 {
                     "resource": "biologicalmaterial2study",
@@ -173,6 +177,7 @@
             "schema": {
                 "file": "observationunit.schema.json"
             },
+            "checklist": {"file": "observationunit.checklist.json"},
             "transforms": [
                 {
                     "resource": "observationunit2study",
@@ -209,6 +214,7 @@
             "schema": {
                 "file": "observedvariable.schema.json"
             },
+            "checklist": {"file": "observedvariable.checklist.json"},
             "transforms": [
                 {
                     "resource": "observedvariable2study",

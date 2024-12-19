@@ -1,8 +1,8 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",  
-    "$id": "https://www.plantbreeding.wur.nl/xlsx-validator/configuration.schema.json",  
+    "$id": "https://github.com/matthijsbrouwer/excel-validator",  
     "title": "Configuration xlsx-validator",  
-    "description": "A configuration file for the xlsx-validator package",
+    "description": "A configuration file for the excel-validator package",
     "type": "object",
     "properties": {
         "settings": {
