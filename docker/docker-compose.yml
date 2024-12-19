@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  excel-validator:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - ./config.ini:/data/config.ini
+    ports:
+      - "8080:8080"
