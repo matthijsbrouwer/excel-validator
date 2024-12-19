@@ -191,7 +191,7 @@ class Validate:
         #update
         progression_bar.reset(total=len(self._availableSheets)+2)        
         #initialise
-        os.mkdir(configurationLocation)
+        os.makedirs(configurationLocation, exist_ok=True)
         os.mkdir(os.path.join(configurationLocation,"schema"))
         configuration = {
             "settings": {

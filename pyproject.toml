@@ -19,7 +19,7 @@ classifiers = [
 Homepage = "https://github.com/matthijsbrouwer/excel-validator"
 
 [project.scripts]
-excel_validator = "excel_validator.script.service:service"
+excel-validator = "excel_validator.script.service:service"
 
 [build-system]
 requires = [

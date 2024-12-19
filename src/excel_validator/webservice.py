@@ -60,6 +60,7 @@ class Webservice:
                     self.logger.error("service '%s' not configured" % service)
         #clear temporary directory
         self.tmp = os.path.abspath(self.config.get("webservice","tmp",fallback="tmp"))
+        os.makedirs(self.tmp, exist_ok=True)
         for root, dirs, files in os.walk(self.tmp):
             for f in files:
                 os.unlink(os.path.join(root, f))
