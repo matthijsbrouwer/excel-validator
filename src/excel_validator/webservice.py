@@ -10,7 +10,7 @@ import json
 import zipfile
 import datetime
 from io import BytesIO
-from flask import Flask, render_template, redirect, url_for, session, request, jsonify, current_app, make_response
+from flask import Flask, Response, abort, render_template, redirect, url_for, session, request, jsonify, current_app, make_response
 from flask_session import Session
 from cachelib.file import FileSystemCache
 from multiprocessing import Process, Queue
@@ -135,13 +135,13 @@ class Webservice:
                     
         
     def service(self):
-        nWorkers = self.config.getint("validation","threads",fallback=3)
+        nWorkers = self.config.getint("validation","threads",fallback=5)
         try:
             self.logger.debug("start queue for validation")
             manager = mp.Manager()
             validationStatus = manager.dict()
             validationQueue = mp.Queue()
-            self.logger.debug("start pool with %d validation workers" % nWorkers)
+            self.logger.info("start pool with %d validation workers" % nWorkers)
             pool = mp.Pool(nWorkers, Webservice.validationWorker,(os.path.join(self.tmp,"data"),
                                                                   self.config,validationQueue,validationStatus,
                                                                   self.config.getboolean("webservice","debug",fallback=False)))
@@ -200,10 +200,15 @@ class Webservice:
                     """ % __version__)
             }
             if operation=="":
-                variables["services"] = [[service,self.config.get(service,"name",fallback=service)] 
-                                         for service in self.services]
-                variables["textIntro"] = self.config.get("webservice","text.intro",fallback="Select the required validation")
-                return render_template("index.html", **variables)
+                if len(self.services)==0:
+                    abort(Response("no services configured", 500))
+                elif len(self.services)==1:
+                    return redirect(self.services[0], code=302)
+                else:
+                    variables["services"] = [[service,self.config.get(service,"name",fallback=service)] 
+                                             for service in self.services]
+                    variables["textIntro"] = self.config.get("webservice","text.intro",fallback="Select the required validation")
+                    return render_template("index.html", **variables)
             elif operation in self.services:
                 #set variables
                 variables["api"] = "%s/api" % operation
@@ -303,7 +308,8 @@ class Webservice:
                                 #locations
                                 originalFilename = session.get("%s.upload" % operation, False)
                                 validationIdentifier = session.get("%s.validate" % operation, False)
-                                if originalFilename and validationIdentifier:
+                                if originalFilename and validationIdentifier and self.config.getboolean(
+                                    operation,"download",fallback=True):
                                     validation = current_app.config["status"][validationIdentifier]
                                     validationStamp = "%s" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                                     if "ended" in validation:
@@ -348,6 +354,9 @@ class Webservice:
                                             response.headers.set("Content-Type", "application/x-zip-compressed")
                                             response.headers.set("Content-Disposition", "attachment", filename=filename)
                                             return response
+                                abort(Response("download not available", 404))
+                            else:
+                                abort(Response("action not available", 404))
                     
                     #compute status
                     status = {
@@ -402,10 +411,10 @@ class Webservice:
                 return redirect(url_for("index"))
 
         #start webservice
-        host = self.config.get("webservice", "host", fallback="::")
+        host = self.config.get("webservice", "host", fallback="0.0.0.0")
         port = self.config.getint("webservice", "port", fallback=8080)
-        threads = self.config.get("webservice", "threads", fallback=10) 
-        self.logger.debug("start webservice on %s:%s with %s threads" % (host,port,threads))
+        threads = self.config.getint("webservice", "threads", fallback=5) 
+        self.logger.info("start webservice on %s:%s with %s threads" % (host,port,threads))
         serve(app, host=host, port=port, threads=threads) 
         
 

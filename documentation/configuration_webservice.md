@@ -4,32 +4,4 @@ The [Excel Validator](..) is a Python package designed to validate Excel files (
 
 ## Configuation webservice
 
-
-```
-[webservice]
-debug=true
-host=::
-port=8080
-threads=5
-services=default,miappe
-tmp=tmp
-#title=Excel Validator
-#text.intro=custom intro text with <b>html</b>-tags
-#text.footer=custom footer text with <b>html</b>-tags
-
-[validation]
-threads=5
-timeout=300
-
-[default]
-name=Default validation
-config=default
-
-[miappe]
-name=MIAPPE validation
-#text.upload=Select XLSX File for validation
-config=miappe
-download=true
-```
-
-TODO
+See the documented [default configuration](../src/excel_validator/config.ini)

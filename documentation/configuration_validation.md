@@ -70,7 +70,7 @@ The `schema` object should contain either a `file` or `data` entry, and it may o
 
 - **file**: string<br/>A reference to a file containing a frictionless schema for resource validation
 - **data**: object<br/>A frictionless schema for resource validation
-- **dynamic** array<br/>Describing extension of the frictionless schema based on content other sheets. See the [JSON schema file](../src/excel_validator/config.json) or the included [configurations](../src/excel_validator/) for more details
+- **dynamic** array<br/>Describing extension of the frictionless schema based on content other sheets. See the [JSON schema file](../src/excel_validator/config.json) or the included [configurations](../src/excel_validator/config/) for more details
 
 ### checklist
 

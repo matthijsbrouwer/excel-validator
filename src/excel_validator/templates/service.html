@@ -1,7 +1,8 @@
 {% include "block_header.html" %}
 <main role="main" class="container" data-api="{{ url_for("index", path=api) }}">
+    {% if name %}<legend class="mb-3">{{ name|safe }}</legend>{% endif %}
     <div class="mb-3 form">
-        <label for="formFile" class="form-label">{{ textUpload }}</label>
+        <label for="formFile" class="form-label">{{ textUpload|safe }}</label>
         <input class="form-control w-auto" name="file" type="file" id="formFile">
         <div class="error text-danger"></div>
     </div>
