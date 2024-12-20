@@ -967,9 +967,6 @@ class Validate:
         checklist = Checklist.from_descriptor(entry["checklist"]["data"]) if "checklist" in entry else Checklist()
         checklist.skip_errors = skip_errors
         resource_validation = resource.validate(checklist=checklist)
-        if "checklist" in entry:
-            print(checklist)
-            print(resource_validation)
         self._report.setFrictionless(reportId, resource_validation)
         self._report.addReportDebug(reportId, resource_validation.stats)
         if resource_validation.valid and skip_errors is None:
