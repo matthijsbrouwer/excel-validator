@@ -235,7 +235,6 @@
         "pipeline": {
             "type": "object",
             "properties": {
-                "row": {"type": "string"},
                 "file": {"type": "string"},
                 "data": {"type": "object"}
             },
