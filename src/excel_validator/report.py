@@ -343,7 +343,7 @@ class ValidationReportEntry:
                     else:
                         detailText = "for '{}'".format(errorKey[0])
                     if markdown:
-                        reportText = reportText + "* **{}**: {}x{}<br/>".format(
+                        reportText = reportText + "* **{}**: {}x {}<br/>".format(
                             ValidationReportEntry._escapeMarkdown(errors[errorKey][0].get_defined(name="title",default=errorKey[1])),
                             len(errors[errorKey]),ValidationReportEntry._escapeMarkdown(detailText))
                     else:

@@ -22,7 +22,8 @@
             "dependencies": [],
             "resource": "2a_study",
             "schema": {
-                "file": "2a_study.schema.json"
+                "file": "2a_study.schema.json",
+                "missing": [{"position": "after"}]
             }
         },
         {

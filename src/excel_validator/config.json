@@ -249,6 +249,22 @@
             "properties": {
                 "file": {"type": "string"},
                 "data": {"type": "object"},
+                "ordered": {"type": "boolean", "description": "field names should occur in the defined order"},
+                "required": {"oneOf": [
+                                {"type": "boolean"},
+                                {"type": "array", "items": {"type": "string"}}
+                    ]},
+                "missing": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "position": {"type": "string", "enum": ["before","after","any"]}
+                        },
+                        "required": ["position"],
+                        "additionalProperties": false
+                    }
+                },
                 "dynamic": {
                     "type": "array",
                     "items": {
@@ -294,7 +310,12 @@
                                     "required": ["map"],
                                     "additionalProperties": false
                                 }
-                            },                                        
+                            },
+                            "required": {"oneOf": [
+                                        {"type": "boolean"},
+                                        {"type": "array", "items": {"type": "string"}}
+                            ]},
+                            "ordered": {"type": "boolean", "description": "field names should occur in the defined order"},
                             "fields": {
                                 "type": "array",
                                 "items": {

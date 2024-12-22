@@ -1,11 +1,11 @@
 {
     "settings": {
+        "schemaPath": "schema",
         "allowAdditionalSheets": false,
         "requireSheetOrder": false,
         "adjustTypeForStringColumns": true,
         "removeEmptyRows": true,
-        "removeEmptyColumns": true,
-        "schemaPath": "schema"
+        "removeEmptyColumns": true
     },
     "sheets":[
         {
@@ -17,13 +17,6 @@
             "optional": false,
             "dependencies": [],
             "resource": "observedscores",
-            "modules": [
-                {
-                    "name": "AgentIdVerification",
-                    "config": {
-                    }
-                }
-            ],
             "schema": {
                 "file": "observedScores.schema.json",
                 "dynamic": [
@@ -51,9 +44,11 @@
                         "mappings": {
                             "type": {
                                 "default": "any",
-                                "map": {"Measurement": "number"}
+                                "map": {"Measurement": "any"}
                             }
                         },
+                        "required": false,
+                        "ordered": false,
                         "fields": [
                             {
                                 "name": {"field": "Name", "dynamicResource": "trait"},

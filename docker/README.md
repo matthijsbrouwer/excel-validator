@@ -4,7 +4,7 @@ The [Excel Validator](..) is a Python package designed to validate Excel files (
 
 ## Docker Webservice
 
-Adjust if necessary the [docker-compose.yml](docker-compose.yml).
+Adjust if necessary the [docker-compose.yml](docker-compose.yml) or [config.ini](config.ini).
 
 Start the webservice with `webservice_start.sh` or
 

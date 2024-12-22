@@ -855,6 +855,10 @@ class Validate:
         adjustTypeForStringColumns = self._config["settings"].get("adjustTypeForStringColumns", False)
         removeEmptyRows = self._config["settings"].get("removeEmptyRows", False)
         removeEmptyColumns = self._config["settings"].get("removeEmptyColumns", False)
+        if resource.memory:
+            resourceColumnNames = list(resource.data.data.fieldnames())
+        else:
+            resourceColumnNames = self._getSheetColumnNames(entry["name"])
         #define full schema
         resource.schema = Schema.from_descriptor(entry["schema"]["data"])
         #dynamic
@@ -863,7 +867,6 @@ class Validate:
             for dynamic in entry["schema"]["dynamic"]:
                 dynamicResources = {}
                 mappings = dynamic.get("mappings",{})
-                newFields = []
                 #get resources
                 if "dynamicResources" in dynamic:
                     for name,dynamicResource in dynamic["dynamicResources"].items():
@@ -881,10 +884,12 @@ class Validate:
                             resources[linkedResource["resource"]] = pd.DataFrame(self._package.get_resource(
                                 linkedResource["resource"]).extract().get(linkedResource["resource"],[]))
                 #create fields
+                newEntryFields = []
                 dynamicResourcesList = sorted(list(dynamicResources.keys()))
                 dynamicResourcesIterators = [dynamicResources[key].iterrows() for key in dynamicResourcesList]
                 linkedResources = {}
                 recomputeLinkedResources = False
+                required = dynamic.get("required",True)
                 for dynamicEntry in itertools.product(*dynamicResourcesIterators):
                     dynamicResourcesEntry = dict(map(lambda k,v : (k,v[1]), dynamicResourcesList,dynamicEntry))
                     if "linkedResources" in dynamic and (len(linkedResources)==0 or recomputeLinkedResources):
@@ -902,11 +907,19 @@ class Validate:
                                     resourceData = resourceData[resourceData[condition["field"]].values==value]
                             linkedResources[name] = resourceData
                     for fieldEntry in dynamic["fields"]:
+                        #create field
                         fieldDescriptor = {}
                         for key in ["name","type","rdfType","title","format","example","description"]:
                             fieldDescriptor = setDescriptorValueDynamicString(
                                 key,fieldDescriptor,fieldEntry,
                                 dynamicResourcesEntry,mappings,linkedResources,self._logger)
+                        #check is missing field is allowed
+                        if not fieldDescriptor.get("name","") in resourceColumnNames:
+                            if required==False:
+                                continue
+                            elif isinstance(required,list) and not fieldDescriptor.get("name","") in required:
+                                continue
+                        #add constraints
                         if "constraints" in fieldEntry:
                             fieldDescriptor["constraints"] = {}
                             for key in ["enum"]:
@@ -929,7 +942,18 @@ class Validate:
                                 fieldDescriptor["constraints"] = setDescriptorValueDynamicString(
                                  key,fieldDescriptor["constraints"],fieldEntry["constraints"],
                                     dynamicResourcesEntry,mappings,linkedResources,self._logger)
-                        newFields.append(Field.from_descriptor(fieldDescriptor))
+                        newEntryFields.append(Field.from_descriptor(fieldDescriptor))
+                if not dynamic.get("ordered",True):
+                    newFields = []
+                    for resourceColumnName in resourceColumnNames:
+                        for item in newEntryFields:
+                            if item.name==resourceColumnName:
+                                newFields.append(item)
+                    for item in newEntryFields:
+                        if not item.name in resourceColumnNames:
+                            newFields.append(item)
+                else:
+                    newFields = newEntryFields
                 #update schema
                 position = dynamic.get("position","after")
                 field = dynamic.get("field",None)
@@ -950,6 +974,66 @@ class Validate:
                         for i,newField in enumerate(newFields):
                             resource.schema.add_field(newField, position=pos+i+1)
 
+        #adjust schema
+        if not entry["schema"].get("required",True):
+            removeFields = set()
+            for fieldName in resource.schema.field_names:
+                if not fieldName in resourceColumnNames:
+                    removeFields.add(fieldName)
+            for fieldName in removeFields:
+                resource.schema.remove_field(fieldName)
+        if not entry["schema"].get("ordered",True):
+            allFields = []
+            for fieldName in resource.schema.field_names:
+                allFields.append(resource.schema.get_field(fieldName))
+            resource.schema.clear_fields()
+            for resourceColumnName in resourceColumnNames:
+                for item in allFields:
+                    if item.name==resourceColumnName:
+                        resource.schema.add_field(item)
+            for item in allFields:
+                if not item.name in resourceColumnNames:
+                    resource.schema.add_field(item)
+        #missing
+        if "missing" in entry["schema"]:
+            for missing in entry["schema"]["missing"]:
+                if len(resource.schema.fields)==0:
+                    for resourceColumnName in resourceColumnNames:
+                        newField = Field.from_descriptor({"name": resourceColumnName})
+                        resource.schema.add_field(newField)
+                elif missing["position"] == "after":
+                    addNewFields = False
+                    for resourceColumnName in resourceColumnNames:
+                        if addNewFields:
+                            newField = Field.from_descriptor({"name": resourceColumnName})
+                            resource.schema.add_field(newField)
+                        elif resourceColumnName == resource.schema.fields[-1].name:
+                            addNewFields = True
+                elif missing["position"] == "before":
+                    for i,resourceColumnName in enumerate(resourceColumnNames):
+                        if resourceColumnName == resource.schema.fields[0].name:
+                            break
+                        else:
+                            newField = Field.from_descriptor({"name": resourceColumnName})
+                            resource.schema.add_field(newField, position=1+i)
+                elif missing["position"] == "any":
+                    allFields = []
+                    allFieldNames = []
+                    for fieldName in resource.schema.field_names:
+                        allFields.append(resource.schema.get_field(fieldName))
+                        allFieldNames.append(fieldName)
+                    resource.schema.clear_fields()
+                    i = 0
+                    for resourceColumnName in resourceColumnNames:
+                        if i<len(allFields) and allFields[i].name==resourceColumnName:
+                            resource.schema.add_field(allFields[i])
+                            i+=1
+                            continue
+                        elif not resourceColumnName in allFieldNames:
+                            newField = Field.from_descriptor({"name": resourceColumnName})
+                            resource.schema.add_field(newField)
+                    for item in allFields[i:]:
+                        resource.schema.add_field(item)
         #check types, empty rows and columns
         if resource.path:
             pick_errors = ["type-error","blank-row","extra-label"]
