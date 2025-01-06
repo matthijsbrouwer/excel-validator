@@ -1,0 +1,15 @@
+{
+    "checks": [
+        {
+            "type": "agent-required-row-values",
+            "fields": ["ACCENUMB", "AGENT_ID", "DOI"],
+            "required": "one"
+        },
+        {
+            "type": "agent-id-validation",
+            "field": "AGENT_ID",
+            "url": "here-the-validation-service-url-should-be-included",
+            "token": "here-the-validation-token-should-be-included"
+        }
+    ]
+}

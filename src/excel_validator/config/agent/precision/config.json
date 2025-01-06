@@ -1,11 +1,12 @@
 {
     "settings": {
+        "schemaPath": "schema",
+        "pluginPath": "plugins",
         "allowAdditionalSheets": false,
         "requireSheetOrder": false,
         "adjustTypeForStringColumns": true,
         "removeEmptyRows": true,
-        "removeEmptyColumns": true,
-        "schemaPath": "schema"
+        "removeEmptyColumns": true
     },
     "sheets":[
         {
@@ -170,6 +171,9 @@
                         ]
                     }
                 ]
+            },
+            "checklist": {
+                "file": "4a_observed_values.checklist.json"
             }
         },
         {

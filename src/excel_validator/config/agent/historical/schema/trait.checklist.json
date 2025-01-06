@@ -1,0 +1,25 @@
+{
+    "checks": [
+        {
+            "type": "agent-required-rows", 
+            "required": {
+            	"plant height": {
+            		"Name": "Plant height"
+            	},
+            	"flowering time": [
+            		{
+            			"Name": "Days to heading",
+            			"Type": "Measurement"
+            		},
+            		{
+            			"Name": "Date of heading",
+            			"Type": "Date"
+            		}
+            	],
+            	"thousand-kernel weight": {
+            		"Name": "Thousand Kernel Weight"
+            	}
+            }
+        }
+    ]
+}

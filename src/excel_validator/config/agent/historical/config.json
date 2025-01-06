@@ -1,6 +1,7 @@
 {
     "settings": {
         "schemaPath": "schema",
+        "pluginPath": "plugins",
         "allowAdditionalSheets": false,
         "requireSheetOrder": false,
         "adjustTypeForStringColumns": true,
@@ -70,6 +71,9 @@
                         ]
                     }
                 ]
+            },
+            "checklist": {
+                "file": "observedScores.checklist.json"
             }
         },
         {
@@ -79,9 +83,6 @@
             "resource": "experiment",
             "schema": {
                 "file": "experiment.schema.json"
-            },
-            "checklist": {
-                "file": "experiment.checklist.json"
             }
         },
         {
@@ -100,6 +101,9 @@
             "resource": "trait",
             "schema": {
                 "file": "trait.schema.json"
+            },
+            "checklist": {
+                "file": "trait.checklist.json"
             }
         }
     ]

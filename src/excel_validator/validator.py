@@ -17,7 +17,7 @@ import importlib
 import inspect
 from tqdm import tqdm
 from openpyxl import reader, load_workbook
-from frictionless import Package, Dialect, Resource, Schema, Checklist, Check, Field, Pipeline, fields, settings, formats, describe, system
+from frictionless import Package, Dialect, Resource, Schema, Checklist, Check, Field, Pipeline, Plugin, fields, settings, formats, describe, system
 from ._version import __version__
 from .report import ValidationReport
 from .functions import setDescriptorValueDynamicString
@@ -134,14 +134,17 @@ class Validate:
                 if(os.path.isdir(self._pluginPath)):
                     for file in os.listdir(self._pluginPath):
                         if os.path.isfile(os.path.join(self._pluginPath, file)):
-                            try:
-                                customChecks = importlib.machinery.SourceFileLoader(pathlib.Path(file).stem, 
-                                                    os.path.join(self._pluginPath, file)).load_module()
-                                members = inspect.getmembers(customChecks, inspect.isclass)
-                                for member in members:
+                            # try:
+                            customChecks = importlib.machinery.SourceFileLoader(pathlib.Path(file).stem, 
+                                                os.path.join(self._pluginPath, file)).load_module()
+                            members = inspect.getmembers(customChecks, inspect.isclass)
+                            for member in members:
+                                if issubclass(member[1],Plugin) or 1==1:
                                     system.register(member[0],member[1]())
-                            except Exception as ex:
-                                raise Exception("could not load plugin %s: %s" % (os.path.basename(file),ex))
+                                # elif issubclass(member[1],Error):
+                                #     errors[member[0]] = member[1]
+                            # except Exception as ex:
+                            #     raise Exception("could not load plugin %s: %s" % (os.path.basename(file),ex))
             #initialise for validation
             self._package = Package()
             self._name = kwargs.get("name", os.path.basename(filename))

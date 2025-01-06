@@ -1,1 +1,1 @@
-prune src/excel_validator/config/agent
+#prune src/excel_validator/config/agent

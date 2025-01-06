@@ -144,37 +144,37 @@ def service_validate():
     
 def _validate(xlsx_filename):
     config_filename = validator.Validate.getConfigFilename(args.config)
-    try:
-        validation = validator.Validate(xlsx_filename, config_filename, updateFile=args.update, cli=True)
-        if args.createPackageFile is None or isinstance(args.createPackageFile,str):
-            if args.createPackageFile is None:
-                package_filename = "%s.json" % os.path.splitext(xlsx_filename)[0]
-            else:
-                package_filename = args.createPackageFile
-                if os.path.exists(package_filename):
-                    raise FileExistsError("%s already exists" % package_filename)
-            validation.createPackageJSON(package_filename)
-        if args.createTextReport is None or isinstance(args.createTextReport,str):
-            if args.createTextReport is None:
-                textreport_filename = "%s.txt" % os.path.splitext(xlsx_filename)[0]
-            else:
-                textreport_filename = args.createTextReport
-                if os.path.exists(textreport_filename):
-                    raise FileExistsError("%s already exists" % textreport_filename)
-            with open(textreport_filename, "w") as f:
-                f.write(validation.createTextReport(textreport_filename))
-        if args.createMarkdownReport is None or isinstance(args.createMarkdownReport,str):
-            if args.createMarkdownReport is None:
-                mdreport_filename = "%s.md" % os.path.splitext(xlsx_filename)[0]
-            else:
-                mdreport_filename = args.createMarkdownReport
-                if os.path.exists(mdreport_filename):
-                    raise FileExistsError("%s already exists" % mdreport_filename)
-            with open(mdreport_filename, "w") as f:
-                f.write(validation.createMarkdownReport(mdreport_filename))
-        return validation
-    except Exception as ex:
-        parser.error(ex)
-    finally:
-        pass
+    # try:
+    validation = validator.Validate(xlsx_filename, config_filename, updateFile=args.update, cli=True)
+    if args.createPackageFile is None or isinstance(args.createPackageFile,str):
+        if args.createPackageFile is None:
+            package_filename = "%s.json" % os.path.splitext(xlsx_filename)[0]
+        else:
+            package_filename = args.createPackageFile
+            if os.path.exists(package_filename):
+                raise FileExistsError("%s already exists" % package_filename)
+        validation.createPackageJSON(package_filename)
+    if args.createTextReport is None or isinstance(args.createTextReport,str):
+        if args.createTextReport is None:
+            textreport_filename = "%s.txt" % os.path.splitext(xlsx_filename)[0]
+        else:
+            textreport_filename = args.createTextReport
+            if os.path.exists(textreport_filename):
+                raise FileExistsError("%s already exists" % textreport_filename)
+        with open(textreport_filename, "w") as f:
+            f.write(validation.createTextReport(textreport_filename))
+    if args.createMarkdownReport is None or isinstance(args.createMarkdownReport,str):
+        if args.createMarkdownReport is None:
+            mdreport_filename = "%s.md" % os.path.splitext(xlsx_filename)[0]
+        else:
+            mdreport_filename = args.createMarkdownReport
+            if os.path.exists(mdreport_filename):
+                raise FileExistsError("%s already exists" % mdreport_filename)
+        with open(mdreport_filename, "w") as f:
+            f.write(validation.createMarkdownReport(mdreport_filename))
+    return validation
+    # except Exception as ex:
+    #     parser.error(ex)
+    # finally:
+    #     pass
     
