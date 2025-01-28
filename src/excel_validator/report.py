@@ -354,7 +354,7 @@ class ValidationReportEntry:
                     #include short description problem
                     errorText2 = errors[errorKey][0].get_defined(name="description",default="")
                     if markdown:
-                        reportText = reportText + "{}\n".format(ValidationReportEntry._escapeMarkdown(errorText2))
+                        reportText = reportText + ": {}\n".format(ValidationReportEntry._escapeMarkdown(errorText2))
                     else:
                         reportText = reportText + textwrap.fill(errorText2,textWidth-4,
                                                             initial_indent="  ",subsequent_indent="  ")+"\n"

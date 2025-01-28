@@ -1045,11 +1045,19 @@ class Validate:
                 if not resource_validation.valid:
                     errorTypes = set([item.type for item in resource_validation.tasks[0].errors])
                     if adjustTypeForStringColumns and "type-error" in errorTypes:
-                        self._updateTypeForStringColumns(entry["name"],resource,reportId)
-                    if removeEmptyRows and "blank-row" in errorTypes:
-                        self._removeEmptyRowsForSheet(entry["name"],resource,reportId)
+                        self._updateTypeForStringColumns(entry["name"],resource,reportId) 
+                        if len(resource_validation.tasks[0].errors)>=settings.DEFAULT_LIMIT_ERRORS:                                
+                            resource_validation = resource.validate(checklist=Checklist(pick_errors=pick_errors, skip_errors=skip_errors))
+                            if not resource_validation.valid:
+                                errorTypes = set([item.type for item in resource_validation.tasks[0].errors])   
                     if removeEmptyColumns and "extra-label" in errorTypes:
                         self._removeEmptyColumnsForSheet(entry["name"],resource,reportId)
+                        if len(resource_validation.tasks[0].errors)>=settings.DEFAULT_LIMIT_ERRORS:                                
+                            resource_validation = resource.validate(checklist=Checklist(pick_errors=pick_errors, skip_errors=skip_errors))
+                            if not resource_validation.valid:
+                                errorTypes = set([item.type for item in resource_validation.tasks[0].errors])
+                    if removeEmptyRows and "blank-row" in errorTypes:
+                        self._removeEmptyRowsForSheet(entry["name"],resource,reportId)                    
         #validate
         checklist = Checklist.from_descriptor(entry["checklist"]["data"]) if "checklist" in entry else Checklist()
         checklist.skip_errors = skip_errors
