@@ -172,11 +172,11 @@ class Validate:
             if not os.path.exists(config_filename):
                 config_filename = os.path.join(internal_config_directory, config)
             if not os.path.exists(config_filename):
-                parser.error("Can't find configuration %s" % config)
+                raise FileNotFoundError("Can't find configuration %s" % config)
             elif os.path.isdir(config_filename):
                 config_filename = os.path.join(config_filename, "config.json")
                 if not os.path.exists(config_filename):
-                    parser.error("Can't find configuration %s" % config)
+                    raise FileNotFoundError("Can't find configuration %s" % config)
         else:
             config_filename = os.path.join(internal_config_directory, "default/config.json")
         return config_filename
@@ -434,7 +434,7 @@ class Validate:
                         recheckList = newRecheckList
         if len(recheckList)>0:
             recheckSheetList = [entry["name"] for entry in recheckList]
-            self._report.addReportError("general", "can't solve dependencies for sheets","{}'".format("', '".join(recheckSheetList)))
+            self._report.addReportError("general", "Can't solve dependencies for sheets","'{}'".format("', '".join(recheckSheetList)))
         return validationEntries
 
     def _getSheetColumnNames(self, sheetName:str):
@@ -728,7 +728,7 @@ class Validate:
             if not allowAdditionalSheets:
                 self._report.addReportError("general", Validate.ERROR_UNEXPECTED_SHEETS, "'{}'".format("', '".join(additionalSheets)))
             else:
-                self._report.addReportInfo("general", "ignoring additional sheet(s): '{}'".format("', '".join(additionalSheets)))
+                self._report.addReportInfo("general", "Ignoring additional sheet(s): '{}'".format("', '".join(additionalSheets)))
         if requireSheetOrder:
             requiredOrder = [entry["name"] for entry in self._config["sheets"] if entry["name"] in self._availableSheets]
             availableOrder = [sheetName for sheetName in self._availableSheets if sheetName in requiredOrder]
