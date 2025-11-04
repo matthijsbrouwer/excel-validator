@@ -43,7 +43,7 @@ class ValidationReport:
         if not (name in self._reportNames or name in self._reports):
             raise KeyError
         self._reports[name].addError(title,description,data)
-        self._logger.info(f"[{name}] - {title}: {description}")
+        self._logger.info(f"[{name}] - ERROR [{title}]: {description}")
 
     def addReportWarning(self, name:str, title:str, description:str):
         """
@@ -52,7 +52,7 @@ class ValidationReport:
         if not (name in self._reportNames or name in self._reports):
             raise KeyError
         self._reports[name].addWarning(title,description)
-        self._logger.info(f"[{name}] - {title}: {description}")
+        self._logger.info(f"[{name}] - WARNING [{title}]: {description}")
 
     def addReportDebug(self, name:str, description:str):
         """
@@ -60,7 +60,7 @@ class ValidationReport:
         """
         if not (name in self._reportNames or name in self._reports):
             raise KeyError
-        self._logger.info(f"[{name}] - {description}")
+        self._logger.info(f"[{name}] - DEBUG {description}")
 
     def addReportInfo(self, name:str, description:str):
         """
@@ -69,7 +69,7 @@ class ValidationReport:
         if not (name in self._reportNames or name in self._reports):
             raise KeyError
         self._reports[name].addInfo(description)
-        self._logger.info(f"[{name}] - {description}")
+        self._logger.info(f"[{name}] - INFO {description}")
 
     def setFrictionless(self, name:str, data):
         """

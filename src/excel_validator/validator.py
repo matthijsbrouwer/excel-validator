@@ -68,6 +68,8 @@ class Validate:
     ERROR_MISSING_SHEETS       = "Missing Sheets"
     ERROR_UNEXPECTED_SHEETS    = "Unexpected Sheets"
     ERROR_ORDER_SHEETS         = "Incorrect Order Sheets"
+    ERROR_EMPTY_ROW            = "Empty Rows"
+    ERROR_EMPTY_COLUMN         = "Empty Columns"
     ERROR_MISSING_COLUMNS      = "Missing Columns"
     ERROR_UNRECOGNIZED_COLUMNS = "Unrecognized Columns"
     ERROR_ORDER_COLUMNS        = "Incorrect Order Columns"
@@ -511,7 +513,7 @@ class Validate:
                 pass
         return adjusted_resource
 
-    def _removeEmptyRowsForSheet(self, sheetName:str, resource:Resource = None, reportId:str = None):
+    def _removeEmptyRowsForSheet(self, sheetName:str, resource:Resource = None, reportId:str = None, allowed=True):
         try:
             if not resource is None:
                 headerRows = resource.dialect.header_rows
@@ -548,8 +550,12 @@ class Validate:
                                 deletablIds.append(rowId)
                     if len(deletablIds)>0:
                         if not reportId is None:
-                            self._report.addReportWarning(reportId, Validate.WARNING_EMPTY_ROW,
-                                            "removed {} rows".format(len(deletablIds))) 
+                            if allowed:
+                                self._report.addReportWarning(reportId, Validate.WARNING_EMPTY_ROW,
+                                                "removed {} empty rows".format(len(deletablIds)))
+                            else:
+                                self._report.addReportWarning(reportId, Validate.ERROR_EMPTY_ROW,
+                                                "removed {} empty rows".format(len(deletablIds)))
                         #try to delete efficient...
                         sortedDeletableIds = sorted(deletablIds, reverse=True)
                         deletableList = []
@@ -560,6 +566,7 @@ class Validate:
                                 pass
                             else:
                                 ws.delete_rows(deletableList[-1],len(deletableList))
+                                deletableList = []
                     #always save
                     self._wb.save(filename = resourceFilename)
                     if not reportId is None:
@@ -569,7 +576,7 @@ class Validate:
             if not reportId is None:
                 self._report.addReportError(reportId, Validate.ERROR_GENERAL, "problem removing empty rows","{}".format(str(e)))
 
-    def _removeEmptyColumnsForSheet(self, sheetName:str, resource:Resource = None, reportId:str = None):
+    def _removeEmptyColumnsForSheet(self, sheetName:str, resource:Resource = None, reportId:str = None, allowed=True):
         try:
             if not reportId is None:
                 self._report.addReportDebug(reportId, "remove empty columns from sheet '{}'".format(sheetName))
@@ -599,8 +606,12 @@ class Validate:
                             deletablIds.append(columnId)
                     if len(deletablIds)>0:
                         if not reportId is None:
-                            self._report.addReportWarning(reportId, Validate.WARNING_EMPTY_COLUMN,
-                                            "removed {} columns".format(len(deletablIds))) 
+                            if allowed:
+                                self._report.addReportWarning(reportId, Validate.WARNING_EMPTY_COLUMN,
+                                                "removed {} empty columns".format(len(deletablIds))) 
+                            else:
+                                self._report.addReportError(reportId, Validate.ERROR_EMPTY_COLUMN,
+                                                "removed {} empty columns".format(len(deletablIds))) 
                         #try to delete efficient...
                         sortedDeletableIds = sorted(deletablIds, reverse=True)
                         deletableList = []
@@ -612,6 +623,7 @@ class Validate:
                                 pass
                             else:
                                 ws.delete_cols(deletableList[-1],len(deletableList))
+                                deletableList = []
                     #always save
                     self._wb.save(filename = resourceFilename)
                     if not reportId is None:
@@ -976,7 +988,7 @@ class Validate:
                     elif position=="after":
                         for i,newField in enumerate(newFields):
                             resource.schema.add_field(newField, position=pos+i+1)
-
+        
         #adjust schema
         if not entry["schema"].get("required",True):
             removeFields = set()
@@ -1039,6 +1051,14 @@ class Validate:
                         resource.schema.add_field(item)
         #check types, empty rows and columns
         if resource.path:
+            #detect too large number of columns and try to pre-filter empty columns
+            if len(resourceColumnNames)>len(resource.schema.fields):
+                if removeEmptyColumns:
+                    self._removeEmptyColumnsForSheet(entry["name"],resource,reportId)
+                else:
+                    #create error if empty columns found
+                    self._removeEmptyColumnsForSheet(entry["name"],resource,reportId, False)
+            #initial checks
             pick_errors = ["type-error","blank-row","extra-label"]
             if len(pick_errors)>0:
                 resource_validation = resource.validate(checklist=Checklist(pick_errors=pick_errors, skip_errors=skip_errors))
