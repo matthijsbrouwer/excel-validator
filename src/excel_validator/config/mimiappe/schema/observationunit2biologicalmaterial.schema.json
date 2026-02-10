@@ -1,0 +1,32 @@
+{
+    "fields": [
+        {
+            "name": "biologicalMaterialId",
+            "title": "Biological Material ID",
+            "description": "Biological Material identifier (cross-referencing to Biological Material worksheet) corresponding to the organism(s) being observed.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "originalBiologicalMaterialId",
+            "title": "Biological Material ID",
+            "description": "Biological Material identifier (cross-referencing to Biological Material worksheet) corresponding to the organism being observed.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        }
+    ],
+    "foreignKeys": [
+        {
+            "fields": ["biologicalMaterialId"],
+            "reference": {
+                "fields": ["biologicalMaterialId"],
+                "resource": "biologicalmaterial"
+            }
+        }
+    ],
+    "missingValues": [""]
+}

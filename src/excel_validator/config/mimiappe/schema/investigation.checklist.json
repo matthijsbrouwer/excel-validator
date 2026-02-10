@@ -1,0 +1,5 @@
+{
+    "checks": [
+        {"type": "table-dimensions", "numRows": 1}
+    ]
+}

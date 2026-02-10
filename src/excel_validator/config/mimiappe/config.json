@@ -1,0 +1,230 @@
+{
+    "settings": {
+        "schemaPath": "schema",
+        "pluginPath": "plugins",
+        "allowAdditionalSheets": true,
+        "requireSheetOrder": false,
+        "adjustTypeForStringColumns": true,
+        "removeEmptyRows": true,
+        "removeEmptyColumns": true
+    },
+    "webinterface": [
+        {
+            "description": null,
+            "options": [
+                {
+                    "type": "boolean",
+                    "setting": ["settings","allowAdditionalSheets"],
+                    "default": true,
+                    "label": "Allow additional sheets"
+                },
+                {
+                    "type": "boolean",
+                    "setting": ["settings","requireSheetOrder"],
+                    "default": false,
+                    "label": "Require predefined sheet order"
+                }
+            ]
+        }
+    ],
+    "package": {
+        "checklist": {"file": "package.checklist.json"}
+    },
+    "sheets": [
+        {
+            "name": "README",
+            "optional": true
+        },
+        {
+            "name": "Investigation",
+            "optional": false,
+            "resource": "investigation",
+            "schema": {
+                "file": "investigation.schema.json"
+            },
+            "checklist": {"file": "investigation.checklist.json"}
+        },
+        {
+            "name": "Study",
+            "optional": false,
+            "resource": "study",
+            "schema": {
+                "file": "study.schema.json"
+            },
+            "checklist": {"file": "study.checklist.json"}
+        },
+        {
+            "name": "Person",
+            "optional": false,
+            "resource": "person",
+            "schema": {
+                "file": "person.schema.json"
+            },
+            "checklist": {"file": "person.checklist.json"},
+            "transforms": [
+                {
+                    "resource": "person2study",
+                    "pipeline": {
+                        "file": "person2study.pipeline.json"
+                    },
+                    "schema": {
+                        "file": "person2study.schema.json"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Data file",
+            "optional": true,
+            "resource": "datafile",
+            "schema": {
+                "file": "datafile.schema.json"
+            },
+            "transforms": [
+                {
+                    "resource": "datafile2study",
+                    "pipeline": {
+                        "file": "datafile2study.pipeline.json"
+                    },
+                    "schema": {
+                        "file": "datafile2study.schema.json"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Biological Material",
+            "optional": false,
+            "resource": "biologicalmaterial",
+            "schema": {
+                "file": "biologicalmaterial.schema.json"
+            },
+            "checklist": {"file": "biologicalmaterial.checklist.json"},
+            "transforms": [
+                {
+                    "resource": "biologicalmaterial2study",
+                    "pipeline": {
+                        "file": "biologicalmaterial2study.pipeline.json"
+                    },
+                    "schema": {
+                        "file": "biologicalmaterial2study.schema.json"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Environment",
+            "optional": true,
+            "resource": "environment",
+            "schema": {
+                "file": "environment.schema.json"
+            },
+            "transforms": [
+                {
+                    "resource": "environment2study",
+                    "pipeline": {
+                        "file": "environment2study.pipeline.json"
+                    },
+                    "schema": {
+                        "file": "environment2study.schema.json"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Experimental Factor",
+            "optional": true,
+            "resource": "experimentalfactor",
+            "schema": {
+                "file": "experimentalfactor.schema.json"
+            },
+            "transforms": [
+                {
+                    "resource": "experimentalfactor2study",
+                    "pipeline": {
+                        "file": "experimentalfactor2study.pipeline.json"
+                    },
+                    "schema": {
+                        "file": "experimentalfactor2study.schema.json"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Event",
+            "optional": true,
+            "resource": "event",
+            "schema": {
+                "file": "event.schema.json"
+            },
+            "transforms": [
+                {
+                    "resource": "event2study",
+                    "pipeline": {
+                        "file": "event2study.pipeline.json"
+                    },
+                    "schema": {
+                        "file": "event2study.schema.json"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Observation Unit",
+            "optional": false,
+            "resource": "observationunit",
+            "schema": {
+                "file": "observationunit.schema.json"
+            },
+            "checklist": {"file": "observationunit.checklist.json"},
+            "transforms": [
+                {
+                    "resource": "observationunit2study",
+                    "pipeline": {
+                        "file": "observationunit2study.pipeline.json"
+                    },
+                    "schema": {
+                        "file": "observationunit2study.schema.json"
+                    }
+                    },
+                    {
+                    "resource": "observationunit2biologicalmaterial",
+                    "pipeline": {
+                        "file": "observationunit2biologicalmaterial.pipeline.json"
+                    },
+                    "schema": {
+                        "file": "observationunit2biologicalmaterial.schema.json"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Sample",
+            "optional": true,
+            "resource": "sample",
+            "schema": {
+                "file": "sample.schema.json"
+            }
+        },
+        {
+            "name": "Observed Variable",
+            "optional": false,
+            "resource": "observedvariable",
+            "schema": {
+                "file": "observedvariable.schema.json"
+            },
+            "checklist": {"file": "observedvariable.checklist.json"},
+            "transforms": [
+                {
+                    "resource": "observedvariable2study",
+                    "pipeline": {
+                        "file": "observedvariable2study.pipeline.json"
+                    },
+                    "schema": {
+                        "file": "observedvariable2study.schema.json"
+                    }
+                }
+            ]
+        }
+    ]
+}
