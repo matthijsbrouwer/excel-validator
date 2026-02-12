@@ -1,0 +1,41 @@
+{
+    "fields": [
+        {
+            "name": "studyId",
+            "title": "Study unique ID",
+            "description": "Semicolon-separated list of (internal) study identifiers (cross-referencing to study worksheet) where the event was recorded.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "dataFileLink",
+            "title": "Data file link",
+            "description": "Link to the data file (or digital object) in a public database or in a persistent institutional repository; or identifier of the data file when submitted together with the MIAPPE submission.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "dataFileDesc",
+            "title": "Data file description",
+            "description": "Description of the format of the data file. May be a standard file format name, or a description of organization of the data in a tabular file.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "dataFileVersion",
+            "title": "Data file version",
+            "description": "The version of the dataset (the actual data).",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        }
+    ],
+    "missingValues": [""]
+}

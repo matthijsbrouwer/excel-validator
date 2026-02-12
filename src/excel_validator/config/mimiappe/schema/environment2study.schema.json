@@ -1,0 +1,32 @@
+{
+    "fields": [
+        {
+            "name": "studyId",
+            "title": "Study unique ID",
+            "description": "Study identifier (cross-referencing to study worksheet) in which the person was involved.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "originalStudyId",
+            "title": "Study unique ID",
+            "description": "Semicolon-separated list of (internal) study identifiers (cross-referencing to study worksheet) in which the person was involved.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        }
+    ],
+    "foreignKeys": [
+        {
+            "fields": ["studyId"],
+            "reference": {
+                "fields": ["studyId"],
+                "resource": "study"
+            }
+        }
+    ],
+    "missingValues": [""]
+}

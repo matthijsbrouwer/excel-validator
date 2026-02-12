@@ -1,0 +1,32 @@
+{
+    "fields": [
+        {
+            "name": "studyId",
+            "title": "Study unique ID",
+            "description": "Semicolon-separated list of (internal) study identifiers (cross-referencing to study worksheet) where the event was recorded.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "envParam",
+            "title": "Environment parameter",
+            "description": "Name of the environment parameter constant within the experiment.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "envParamValue",
+            "title": "Environment parameter value",
+            "description": "Value of the environment parameter (defined above) constant within the experiment.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        }
+    ],
+    "missingValues": [""]
+}

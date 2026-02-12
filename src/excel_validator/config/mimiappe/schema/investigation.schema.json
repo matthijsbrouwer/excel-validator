@@ -1,0 +1,66 @@
+{
+    "fields": [
+        {
+            "name": "investigationId",
+            "title": "Investigation unique ID",
+            "description": "Identifier comprising the unique name of the institution/database hosting the submission of the investigation data, and the accession number of the investigation in that institution.",
+            "constraints": {
+                "required": false,
+                "unique": true
+            }
+        },
+        {
+            "name": "investigationTitle",
+            "title": "Investigation title",
+            "description": "Human-readable string summarising the investigation.",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }  
+        },
+        {
+            "name": "investigationDescription",
+            "title": "Investigation description",
+            "description": "Human-readable text describing the investigation in more detail.",
+            "type": "string"
+        },
+        {
+            "name": "submissionDate",
+            "title": "Submission date",
+            "description": "Date of submission of the dataset presently being described to a host repository.",
+            "type": "date"
+        },
+        {
+            "name": "publicReleaseDate",
+            "title": "Public release date",
+            "description": "Date of first public release of the dataset presently being described.",
+            "type": "date"
+        },
+        {
+            "name": "license",
+            "title": "License",
+            "description": "License for the reuse of the data associated with this investigation. The Creative Commons licenses cover most use cases and are recommended.",
+            "example": "CC BY-SA 4.0",
+            "type": "string"
+        },
+        {
+            "name": "miappeVersion",
+            "title": "MIAPPE version",
+            "description": "The version of MIAPPE used.",
+            "example": "1.1",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }  
+        },
+        {
+            "name": "associatedPublication",
+            "title": "Associated publication",
+            "description": "An identifier for a literature publication where the investigation is described. Use of DOIs is recommended.",
+            "type": "string",
+            "format": "uri"
+        }
+    ],
+    "primaryKey": "investigationId",
+    "missingValues": [""]
+}

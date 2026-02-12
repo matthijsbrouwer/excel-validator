@@ -1,0 +1,10 @@
+{
+    "steps": [
+        {"type": "field-filter", "names": ["biologicalMaterialId"]},
+        {"type": "field-update", "name": "biologicalMaterialId", "formula": "biologicalMaterialId or ''"},
+        {"type": "field-add", "name": "originalBiologicalMaterialId", "formula": "biologicalMaterialId", "descriptor": {"type": "string"}},
+        {"type": "row-add", "fieldName": "biologicalMaterialId", "pattern": ";"},
+        {"type": "field-update", "name": "biologicalMaterialId", "formula": "str.strip(biologicalMaterialId)"},
+        {"type": "row-search", "fieldName": "biologicalMaterialId", "regex": ".+"}
+    ]
+}
